@@ -1,0 +1,58 @@
+apidoc:
+  title: EFS SDK Organizationmanager-API
+sdk:
+  oauth2:
+    config-url: https://$(DOMAIN)/auth/realms/$(REALM)/.well-known/openid-configuration
+    client-id: sdk-client
+    authorization-grant-type: authorization_code
+    scope: openid
+    user-name-attribute: preferred_username
+  services:
+    metadata:
+      connection-disabled: true
+      #      context-endpoint: http://localhost:8091/metadata/v1.0/context/ # local setup - only used if connection-disabled is false
+      context-endpoint: https://$(DOMAIN)/metadata/v1.0/context/ # dev setup - only used if connection-disabled is false
+    storage-manager:
+      connection-disabled: true
+      #      context-endpoint: http://localhost:8092/storagemanager/v2.0/context/ # local setup - only used if connection-disabled is false
+      context-endpoint: https://$(DOMAIN)/storagemanager/v2.0/context/ # dev setup - only used if connection-disabled is false
+server:
+  port: 8090
+  servlet:
+    context-path: /organizationmanager
+spring:
+  datasource:
+    password: password
+    url: jdbc:postgresql://localhost:5432/organizationmanager
+    username: postgres
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        hbm2ddl:
+          auto: update
+        jdbc:
+          lob:
+            non_contextual_creation: true
+    show-sql: false
+organizationmanager:
+  auth:
+    client-id: $(CLIENT_ID)-confidential
+    client-secret: $(REPLACE-WITH-CLIENT-SECRET)
+    realm-endpoint: https://$(DOMAIN)/auth/admin/$(REALM)
+  kafka:
+    topic:
+      space-deleted: space-deleted
+    enabled: false
+  cors:
+    disabled: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: [prometheus, health, info]
+logging:
+  level:
+    org.springframework: INFO
+    com.efs.sdk: INFO

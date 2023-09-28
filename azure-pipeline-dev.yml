@@ -1,0 +1,15 @@
+# auto trigger on changes to develop branch
+trigger:
+  batch: true
+  branches:
+    include:
+    - develop
+
+# Image used for the agents (= the VMs that actually run the steps in this pipeline)
+pool:
+  vmImage: 'ubuntu-latest'
+
+extends:
+  template: azure-pipeline-template.yml
+  parameters:
+    stage: 'dev'

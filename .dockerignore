@@ -1,0 +1,11 @@
+.git/
+.mvn/
+src
+target/
+docs/
+kubernetes/
+!.dockerignore
+!Dockerfile
+!target/*.jar
+# allow description
+!src/main/resources/description.md

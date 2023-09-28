@@ -1,0 +1,11 @@
+site_name: OrganizationManager
+repo_url: https://dev.azure.com/EFSCIS/EFS-SDK/_git/organizationmanager
+site_description: Documentation for the OrganizationManager service of the Superb Data Kraken
+
+nav:
+  - Home: index.md
+  - Architecture Decision Records (ADR):
+    - Template: arch/0000_template-adr.md
+
+plugins:
+  - techdocs-core

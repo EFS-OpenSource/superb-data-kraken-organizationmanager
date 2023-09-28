@@ -1,0 +1,19 @@
+spring:
+  config:
+    import: "kubernetes:"
+  application:
+    name: organizationmanager
+  cloud:
+    kubernetes:
+      secrets:
+        enabled: true
+        paths:
+          - /etc/secrets
+          - /etc/db-secret
+          - /etc/orgamanager-secret
+      config:
+        paths:
+          - /etc/application/application.yml
+        enable-api: false
+      reload:
+        enabled: false

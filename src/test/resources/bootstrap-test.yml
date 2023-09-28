@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: organizationmanager
+  cloud:
+    kubernetes:
+      enabled: false

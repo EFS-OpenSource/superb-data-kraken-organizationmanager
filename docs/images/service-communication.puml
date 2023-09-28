@@ -1,0 +1,21 @@
+@startuml
+actor Client
+Client -> Organizationmanager: CRUD Organization / Space
+Organizationmanager --> Organizationmanager: Validate Request
+Organizationmanager --> Organizationmanager: persist Entity
+group send requests [send in parallel and wait for return]
+    Organizationmanager -> Metadataservice: CRUD metadata context
+    Organizationmanager -> Storagemanager: CRUD storage context
+    Organizationmanager -> Keycloak: CRUD roles
+    Metadataservice --> Metadataservice: context logic
+    Metadataservice -> Opensearch: CRUD tenants/roles/rolesmapping/...
+    Opensearch -> Metadataservice : Response
+    Storagemanager--> Storagemanager: context logic
+    Storagemanager -> CloudStorage: CRUD storage
+    CloudStorage -> Storagemanager: Response
+    Keycloak -> Organizationmanager: Response
+    Storagemanager -> Organizationmanager : Response
+    Metadataservice -> Organizationmanager : Response
+end
+Organizationmanager -> Client: Response
+@enduml

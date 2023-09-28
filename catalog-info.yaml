@@ -1,0 +1,80 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: sdk-metadata-organizationmanager-service
+  description: OrganizationManager Service of the Superb Data Kraken
+  annotations:
+    dev.azure.com/project-repo: EFS-SDK/organizationmanager
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - java
+    - spring-boot
+    - sdk
+    - sdk-metadata
+  links:
+    - url: https://sdk.efs.ai/organizationmanager/swagger-ui/index.html
+      title: e:fs SDK (prod) Swagger UI
+    - url: https://sdk-dev.efs.ai/organizationmanager/swagger-ui/index.html
+      title: e:fs SDK (dev) Swagger UI
+    - url: https://aicloud.efs.ai/organizationmanager/swagger-ui/index.html
+      title: AICloud (prod) Swagger UI
+spec:
+  type: service
+  lifecycle: production
+  owner: team-sdk
+  system: sdk
+  subcomponentOf: sdk-metadata
+  dependsOn:
+    - resource:sdk-metadata-organizationmanager-db
+    - component:sdk-metadata-opensearch-service
+    - component:sdk-datastore-storagemanager-service
+    - component:sdk-operations-keycloak-service
+    - component:sdk-commons
+  providesApis:
+    - sdk-metadata-organizationmanager-api
+  consumesApis:
+    - sdk-operations-keycloak-api
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: sdk-metadata-organizationmanager-api
+  description: OrganizationManager API of the Superb Data Kraken
+  annotations:
+    dev.azure.com/project-repo: EFS-SDK/organizationmanager
+  tags:
+    - sdk
+    - sdk-metadata
+  links:
+    - url: https://sdk.efs.ai/organizationmanager/swagger-ui/index.html
+      title: e:fs SDK (prod) Swagger UI
+    - url: https://sdk-dev.efs.ai/organizationmanager/swagger-ui/index.html
+      title: e:fs SDK (dev) Swagger UI
+    - url: https://aicloud.efs.ai/organizationmanager/swagger-ui/index.html
+      title: AICloud (prod) Swagger UI
+spec:
+  type: openapi
+  lifecycle: production
+  owner: team-sdk
+  system: sdk
+  definition:
+    $text: https://sdk.efs.ai/organizationmanager/v3/api-docs
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: sdk-metadata-organizationmanager-db
+  description: PostgreSQL database for the organizationmanager service of the Superb Data Kraken
+  annotations:
+    dev.azure.com/project-repo: EFS-SDK/organizationmanager
+  tags:
+    - postgresql
+    - sdk
+    - sdk-metadata
+spec:
+  type: database
+  lifecycle: production
+  owner: team-sdk
+  system: sdk
+  dependsOn:
+    - component:sdk-infrastructure-coredb-service

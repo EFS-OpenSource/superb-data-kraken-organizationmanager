@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: organizationmanager
+  namespace: backend
+data:
+  applicationinsights.json: |-
+    {
+      "connectionString": "$(app-insights-con-string)",
+      "role": {
+        "name": "Organizationmanager Backend"
+      },
+      "instrumentation": {
+        "logging": {
+          "level": "OFF"
+        },
+        "micrometer": {
+          "enabled": true
+        }
+      },
+      "heartbeat": {
+        "intervalSeconds": 60
+      }
+    }
+  application.yml: |-
+    azure:
+      application-insights:
+        instrumentation-key: $(app-insights-instrumentation-key)
+    apidoc:
+      title: EFS SDK Organizationmanager-API
+    sdk:
+      oauth2:
+        config-url: http://keycloak$(postfix)-http.operations.svc.cluster.local/auth/realms/efs-$(environment)/.well-known/openid-configuration
+        client-id: $(environment)-client
+        authorization-grant-type: authorization_code
+        scope: openid
+        user-name-attribute: preferred_username
+      services:
+        metadata:
+          context-endpoint: http://metadata-service$(postfix).backend.svc.cluster.local:8090/metadata/v1.0/context/
+        storage-manager:
+          context-endpoint: http://storagemanager-service$(postfix).operations.svc.cluster.local:8090/storagemanager/v2.0/context/
+    server:
+      port: 8090
+      servlet:
+        context-path: /organizationmanager
+      error:
+        include-message: always
+    spring:
+      datasource:
+        url: jdbc:postgresql://$(environment)-coredb$(postfix).postgres.database.azure.com:5432/organizationmanager?ssl=true&sslmode=prefer
+      jpa:
+        properties:
+          hibernate:
+            dialect: org.hibernate.dialect.PostgreSQLDialect
+            format_sql: true
+            hbm2ddl:
+              auto: update
+            jdbc:
+              lob:
+                non_contextual_creation: true
+        show-sql: false
+    organizationmanager:
+      auth:
+        client-id: $(environment)-client-confidential
+        realm-endpoint: http://keycloak$(postfix)-http.operations.svc.cluster.local/auth/admin/realms/efs-$(environment)
+      kafka:
+        topic:
+          space-deleted: space-deleted
+        enabled: false
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: [
+              prometheus,
+              health,
+              info
+            ]
+    logging:
+      config: classpath:com/efs/sdk/logging/sdk.logback.xml
+      level:
+        com.efs.sdk: $(logging-level)

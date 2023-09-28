@@ -1,0 +1,83 @@
+# auto trigger on changes to master branch
+trigger:
+  batch: true
+  branches:
+    include:
+      - main
+
+# variables
+variables:
+  imageRepository: 'organizationmanager'
+  dockerfilePath: 'Dockerfile'
+  tagVersion: '$(Build.BuildId)' # will be overwritten from pom.xml-version
+  tagLatest: 'latest'
+
+stages:
+  # Test stage:
+  # Runs a Maven task that is equivalent to a "mvn test" command and collects the results in JaCoCo.
+  - stage: Test
+    displayName: Test stage
+    jobs:
+      - job: Test
+        displayName: Test
+        steps:
+          - task: MavenAuthenticate@0
+            inputs:
+              artifactsFeeds: sdk-snapshots, EFS-SDK
+          - task: Maven@3
+            inputs:
+              mavenPomFile: 'pom.xml'
+              goals: 'test'
+              publishJUnitResults: true
+              testResultsFiles: '**/surefire-reports/TEST-*.xml'
+              codeCoverageToolOption: 'JaCoCo'
+              javaHomeOption: 'JDKVersion'
+              jdkVersionOption: '1.17'
+              mavenVersionOption: 'Default'
+              mavenAuthenticateFeed: false
+              effectivePomSkip: false
+              sonarQubeRunAnalysis: false
+  # Build stage:
+  # 1. Runs a Maven task that is equivalent to a "mvn build" command to build the java project into a jar artifact.
+  # 2. Runs a Docker task that builds the artifact into a docker image and pushes it to ACR.
+  - stage: Build
+    displayName: Build stage
+    dependsOn: Test
+    jobs:
+      - job: Build
+        displayName: Build
+        condition: and(succeeded(), not(startsWith(variables['Build.SourceBranch'], 'refs/pull/')))
+        steps:
+          - task: MavenAuthenticate@0
+            inputs:
+              artifactsFeeds: sdk-snapshots, EFS-SDK
+          - task: Maven@3
+            displayName:
+            inputs:
+              mavenPomFile: 'pom.xml'
+              options: '-DskipTests'
+              publishJUnitResults: false
+              javaHomeOption: 'JDKVersion'
+              jdkVersionOption: '1.17'
+              mavenVersionOption: 'Default'
+              mavenAuthenticateFeed: false
+              effectivePomSkip: false
+              sonarQubeRunAnalysis: false
+          - task: PowerShell@2
+            inputs:
+              targetType: 'inline'
+              script: |
+                [xml]$pomXml = Get-Content pom.xml
+                $version=$pomXml.project.version
+                Write-Host "##vso[task.setvariable variable=tagVersion]$version"
+            displayName: Extract version from pom.xml
+          - task: Docker@2
+            displayName: Build and push an image to container registry
+            inputs:
+              command: buildAndPush
+              repository: $(imageRepository)
+              dockerfile: $(dockerfilePath)
+              containerRegistry: $(dockerRegistryServiceConnection)
+              tags: |
+                $(tagVersion)
+                $(tagLatest)
