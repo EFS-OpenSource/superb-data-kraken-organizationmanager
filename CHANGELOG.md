@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - implement missing audit logs
+- fix dependency track findings
 
 ### Changed
 - none
