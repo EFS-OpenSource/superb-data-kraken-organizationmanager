@@ -1,115 +1,104 @@
-# Contributing Guide
+[issue tracker]: https://github.com/EFS-OpenSource/superb-data-kraken-organizationmanager/issues
+[good first issue]: https://github.com/EFS-OpenSource/superb-data-kraken-organizationmanager/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22
+[contacting us]: mailto:sdk@efs-techhub.com
 
-This document shows you how you can contribute to the project
+# Contributing to the Superb Data Kraken (SDK) <!-- omit in toc -->
 
-## General
+The Superb Data Kraken (SDK) operates an open contribution model where everyone may contribute
+in development, reviewing and testing.
+We value the contributions of our community members, and your help is essential to making this project even better. 
+This document presents guidelines and best practices on how you can contribute to the project.
 
-In general, please consider [Contribution guidelines to Open Source Projects](http://www.contribution-guide.org/#).
 
-## Submitting changes
+## Introduction
 
-- Clone the repository
-- Check out a new branch based on what you're going to do:
-  - Example:
-    ````
-    $ git checkout -b BRANCH_NAME
-    ````
-    If you get an error, you may need to fetch first by using
-    ````
-    $ git remote update && git fetch
-    ````
-  - Use one branch per fix / feature
-- Commit your changes
-  - Please provide a git message that explains what you've done
-  - Commit your changes to your local repository
-  - Example:
-    ````
-    $ git commit
-    ````
-- Push to the remote branch
-  - Example:
-    ````
-    $ git push origin BRANCH_NAME
-    ````
-- Make a Merge Request / Pull request
-  - Make sure you send the PR to the <code>BRANCH_NAME</code> branch
-  - Assign the request to a maintainer
+Contributions in form of tests, [peer reviews](#review-process) and [code](#contributing-code) are welcome and needed.
+Testing and reviewing tasks are highly appreciated and a good starting point to familiarize oneself with the project.
+In addition, there are issues with the [good first issue] label as a starting point.
+If you are interested in an issue, it is good to leave a comment to make sure the issue is still applicable and to inform others that you plan to address it.
 
-### Conventions
 
-#### Branching
+In addition to contributors, there are repository maintainers who are responsible for
+merging pull requests and moderation.
 
-Base each development is ```master```-Branch (or ```main```). This portraits a stable, tested status. The commits of this branch hold tags for the according versions.  
 
-Based on the ```master```-Branch a branch ```develop``` will be created, which is base for single features and will be merged into the master with each new version. Tags with the according versions will be created.
+When contributing, please follow the general [Contribution guidelines to Open Source Projects](http://www.contribution-guide.org/#), as long as not stated otherwise below.
 
-Each new feature will be developed in a ```feature```-Branch, which holds each commit for its development. After the development a review will occur, if everything is fine, it will be merged into the ```develop```-Branch. Please consider Namingconventions.
 
-If there are any bugs detected in the ```master```-Branch, fixes should be made in a ```hotfix```-Branch. This will be created based on the master-Branch and will be merged into develop and subsequently into the master. Please consider Namingconventions.
 
-![Branching-Modell](docs/images/SDK_Branching_Modell.png)
+## Getting Started
 
-#### Naming
+To contribute to Superb Data Kraken, follow these steps:
 
-| branch-type | example                 | description                                                             |
-|-------------|-------------------------|-------------------------------------------------------------------------|
-| feature     | f/123-short-description | branch contains implementation of feature 123, with a short description |
-| hotfix      | h/566-short-description | branch contains fix of bug 566, with a short description                |
-| develop     | develop                 | a repository's development-branch                                       |
-| master      | master                  | a repository's main-branch                                              |
+1. [Fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo) the repository on GitHub.
+2. [Clone](https://git-scm.com/docs/git-clone) your forked repository to your local machine.
 
-In order to provide a fast identification, whether a feature or bugfix is being handled in a branch, naming-conventions are required.
+Please follow the [documentation](README.md) carefully on how to set up the development environment and provide tests.
 
-This also enables filtering via git e.g.
 
-```git branch --list 'f*'```
+## Issues
 
-Also it enables a CI/CD-toolchange automated processing, which can lead to varying actions based on the branch-type.  
+### Create a new issue
 
-#### Commit-Messages
+If you encounter a bug or would like to request a new feature, please open an issue on our [issue tracker] and follow the provided template.
 
-A template enables us to have the same structure for each commit-message. Independent of the branch a commit-message will let you know, what exactly was being developed.
+### Solve an issue
 
-A commit-template provides the possibility to automatically generate changelogs.
+Scan through our [issue tracker] to find one that interests you. 
 
-In order to use a commit-template, edit your .gitconfig as follows:
 
-```
-[commit]
-template = ~/.gitmessage
-```
-and provide a .gitmessage in your user-home.
+## Contributing Code
 
-Here is an example of a .gitmessage-file in SDK-environment:
+The workflow to submit changes is as follows:
+1. [Create a topic branch](contributing/git-commands.md/#create-topic-branch) \
+Check out a new branch based on the development branch (see [branching conventions](contributing/branching-guidelines.md/#branching)) according to the [branch naming conventions](contributing/branching-guidelines.md/#naming).
+Use one branch per fix / feature.
+2. Contribute code \
+To maintain consistency in our codebase, please follow coding standards and best practices and [legal compliance](#legal-compliance).
+3. [Commit patches](contributing/git-commands.md/#commit-patches) and when ready, [push to the remote branch](contributing/git-commands.md/#push-to-the-remote-branch)
+4. [Squash commits](https://git-scm.com/docs/git-rebase) to a single feature commit with a meaningful [commit message](contributing/git-commit-guidelines.md)
+5. Create a [Pull request (PR)](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) to submit your changes for review.
+Fill out the [pull request template](contributing/pull-request-template.md) and perform a [self-review](contributing/pull-request-template.md/#self-review). 
+6. Address Feedback during [peer review](#review-process)
+- You can add more commits to your pull request by committing them locally and pushing to your fork.
+- Please reply to any review comments before your pull request is merged.
+- If there is outstanding feedback, and you are not actively working on it, your pull request may be closed.
 
-```
-<type>: <description>
-#-------------- 50 characters ------------------|
- 
-ADDED:
--
- 
-CHANGED:
--
- 
-DELETED:
--
- 
- 
-REFS: <storynumber>
- 
- 
-#--------------- 72 characters ---------------------------------------|
- 
-# DESCRIPTION
-#
-# <type>:
-#
-# feat:     (new feature for the user, not a new feature for build script)
-# fix:      (bug fix for the user, not a fix to a build script)
-# docs:     (changes to the documentation)
-# style:    (formatting, missing semi colons, etc; no production code change)
-# refactor: (refactoring production code, eg. renaming a variable)
-# test:     (adding missing tests, refactoring tests; no production code change)
-#
-```
+
+## Review Process
+
+Anyone may participate in peer review and comment pull requests. The central criteria follow the [self-review](contributing/pull-request-template.md/#self-review) checklist.
+Please comment with the checklist items that you checked and, if a point of the checklist is not OK in your opinion, include an explanation why.
+
+## Decision Process
+The decision whether a pull request is merged into develop/main rests with the project merge
+maintainers and takes the review into consideration.
+
+## Legal Compliance
+
+### Avoiding Copied Code
+
+We value original and legally compliant contributions to this project. To ensure that we respect intellectual property
+rights and maintain compliance with software licenses, we kindly request that all contributors refrain from checking in
+copied code, including code from third-party sources, without the appropriate permissions or licenses.
+
+### Licensing
+
+By contributing to this project, you agree that your contributions will be subject to the [project's license](LICENSE)
+and will comply with the following:
+
+
+- Any code you submit must be your original work, or you must have the necessary permissions to contribute it.
+- If you include code from other sources (e.g., libraries, frameworks, or open-source projects), ensure that the code is properly attributed, and its licensing terms are compatible with this project's licensing.
+- Please contain the standard SDK Apache License 2.0 header in all (new) files.
+
+### Reporting Copyright Violations
+
+If you suspect that any contributed code violates copyright or licensing agreements, please promptly notify the
+project maintainers by opening an issue on [Issue Tracker] or [contacting us].
+
+
+
+## Conclusion
+
+Thank you for considering contributing to Superb Data Kraken! Your contributions are greatly appreciated, and they help make this project better for everyone. Get started today and be part of our open-source community!
