@@ -18,6 +18,7 @@ package com.efs.sdk.organizationmanager.helper;
 import com.efs.sdk.organizationmanager.core.organization.model.Organization;
 import com.efs.sdk.organizationmanager.core.space.model.Space;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import java.util.Objects;
@@ -36,6 +37,17 @@ public final class Utils {
     public static String getSubject() {
         return Objects.requireNonNull(((JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication()).getToken(), "JWT token of " +
                 "SecurityContextHolder should not be null").getSubject();
+    }
+
+    /**
+     * Get JwtAuthorizationToken from Security-Context
+     *
+     * @return JwtAuthenticationToken
+     */
+    public static JwtAuthenticationToken getSubjectAsToken() {
+        Jwt jwt = Objects.requireNonNull(((JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication()).getToken(), "JWT token of " +
+                "SecurityContextHolder should not be null");
+        return new JwtAuthenticationToken(jwt);
     }
 
     // ******************************************************

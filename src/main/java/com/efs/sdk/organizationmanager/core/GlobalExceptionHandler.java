@@ -36,7 +36,7 @@ import java.util.*;
 import java.util.stream.StreamSupport;
 
 import static com.efs.sdk.organizationmanager.commons.OrganizationmanagerException.ORGANIZATIONMANAGER_ERROR.*;
-import static com.efs.sdk.organizationmanager.helper.Utils.getSubject;
+import static com.efs.sdk.organizationmanager.helper.Utils.getSubjectAsToken;
 
 
 @RestControllerAdvice
@@ -79,7 +79,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .filter(p -> p.equalsIgnoreCase(HttpHeaders.AUTHORIZATION)).findFirst();
         if (authHeader.isPresent()) {
             String requestURI = ((ServletWebRequest) request).getRequest().getRequestURI();
-            AuditLogger.error(LOG, "triggered access denied on context {}", getSubject(),
+            AuditLogger.error(LOG, "triggered access denied on context {}", getSubjectAsToken(),
                     requestURI);
         }
         return handleOrganizationmanagerException(new OrganizationmanagerException(FORBIDDEN), request);
