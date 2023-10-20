@@ -18,6 +18,7 @@ package com.efs.sdk.organizationmanager.core.space;
 import com.efs.sdk.common.domain.dto.SpaceCreateDTO;
 import com.efs.sdk.common.domain.dto.SpaceReadDTO;
 import com.efs.sdk.common.domain.dto.SpaceUpdateDTO;
+import com.efs.sdk.logging.AuditLogger;
 import com.efs.sdk.organizationmanager.commons.OrganizationmanagerException;
 import com.efs.sdk.organizationmanager.core.OrganizationManagerService;
 import com.efs.sdk.organizationmanager.core.space.model.Space;
@@ -77,6 +78,7 @@ public class SpaceControllerV2 {
     public ResponseEntity<SpaceReadDTO> createSpace(@Parameter(hidden = true) JwtAuthenticationToken token, @PathVariable @Parameter(description = "The id of" +
             " the `Organization`.") long orgaId, @Valid @RequestBody SpaceCreateDTO dto) throws OrganizationmanagerException {
         LOG.debug("creating space {} in organization {}", dto.getName(), orgaId);
+        AuditLogger.info(LOG, "creating space {} in organization {}", token, dto.getName(), orgaId);
         Space space = converter.convertToEntity(dto, Space.class);
         space.setOwners(List.of(token.getToken().getSubject()));
         Space item = orgaManagerService.createSpace(authHelper.getAuthenticationModel(token), orgaId, space);
@@ -177,6 +179,7 @@ public class SpaceControllerV2 {
             " `Organization`.") long orgaId, @PathVariable @Parameter(description = "The id of the `Space`.") long spaceId) throws OrganizationmanagerException {
         LOG.debug("deleting space {}", spaceId);
         orgaManagerService.deleteSpace(authHelper.getAuthenticationModel(token), orgaId, spaceId);
+        AuditLogger.info(LOG, "deleting space {}", token, spaceId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
