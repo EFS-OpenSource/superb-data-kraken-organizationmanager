@@ -9,9 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-## 1.0.1 - 2023-10-17
+## 1.1.0 - 2023-10-05
 
 ### Added
+- implement missing audit logs
+- fix dependency track findings
 - contributing guide
 
 ### Changed
@@ -19,7 +21,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - none
-
 
 ## 1.0.0 - 2023-09-28
 
