@@ -67,7 +67,7 @@ public class AllSpacesController {
     @ApiResponse(responseCode = "200", description = "Successfully listed all spaces the user has access to.")
     public ResponseEntity<List<String>> getAllSpaces(
             @Parameter(hidden = true) JwtAuthenticationToken token, @Parameter(description = "Name of the permissions.", schema = @Schema(type = "string", allowableValues
-            = {"READ", "WRITE", "DELETE"}), in = ParameterIn.QUERY) @RequestParam(required = false) AuthConfiguration permissions) throws OrganizationmanagerException {
+            = {"READ", "WRITE", "DELETE", "GET"}), in = ParameterIn.QUERY) @RequestParam(required = false) AuthConfiguration permissions) throws OrganizationmanagerException {
         LOG.debug("getting all organizations");
         // persisted in database
         AuthenticationModel authModel = authHelper.getAuthenticationModel(token);
