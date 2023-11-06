@@ -22,6 +22,8 @@ import com.efs.sdk.organizationmanager.helper.AuthHelper;
 import com.efs.sdk.organizationmanager.helper.AuthenticationModel;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
@@ -30,6 +32,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -63,12 +66,12 @@ public class AllSpacesController {
     @GetMapping(produces = "application/json")
     @ApiResponse(responseCode = "200", description = "Successfully listed all spaces the user has access to.")
     public ResponseEntity<List<String>> getAllSpaces(
-            @Parameter(hidden = true) JwtAuthenticationToken token
-    ) throws OrganizationmanagerException {
+            @Parameter(hidden = true) JwtAuthenticationToken token, @Parameter(description = "Name of the permissions.", schema = @Schema(type = "string", allowableValues
+            = {"READ", "WRITE", "DELETE"}), in = ParameterIn.QUERY) @RequestParam(required = false) AuthConfiguration permissions) throws OrganizationmanagerException {
         LOG.debug("getting all organizations");
         // persisted in database
         AuthenticationModel authModel = authHelper.getAuthenticationModel(token);
-        AuthConfiguration authConfig = GET;
+        AuthConfiguration authConfig = permissions == null ? GET : permissions;
 
         return ResponseEntity.ok(orgaManagerService.getSpaceNamesWithOrganizationPrefix(authModel, authConfig));
     }
