@@ -62,7 +62,7 @@ public class AllSpacesController {
     @Operation(summary = "Lists all Spaces in all Organizations", description = """
             Lists the names of all spaces the user has access to, in the form of the organization name and space name separated by `_`, i.e. as <organization-name>_<space-name>.\s
                    
-            You can also specify `permissions`, then only those `Space`s are listed which the user has the appropriate permission. This feature can be used, for example, to generate a list of `Space`s to which the user is allowed to upload data.            
+            You can also specify `permissions`, then only those `Space`s are listed which the user has the appropriate permission. The default permission is 'GET'. This feature can be used, for example, to generate a list of `Space`s to which the user is allowed to upload data.            
                  """)
     @GetMapping(produces = "application/json")
     @ApiResponse(responseCode = "200", description = "Successfully listed all spaces the user has access to, optionally filtered by permission.")
