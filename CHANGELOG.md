@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - implement missing audit logs
 - fix dependency track findings
 - contributing guide
+- endpoint to get all spaces (by permissions)
 
 ### Changed
 - none

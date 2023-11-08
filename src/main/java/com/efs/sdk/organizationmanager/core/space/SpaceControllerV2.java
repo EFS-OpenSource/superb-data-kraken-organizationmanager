@@ -120,13 +120,13 @@ public class SpaceControllerV2 {
     @Operation(summary = "Lists Spaces", description = """
             Lists all `Space`s the user has access to. 
 
-            You can also specify `permissions`, then only those `Space`s are listed which the user has the appropriate permission. This feature can be used, for example, to generate a list of `Space`s to which the user is allowed to upload data.
+            You can also specify `permissions`, then only those `Space`s are listed which the user has the appropriate permission. The default permission is 'GET'. This feature can be used, for example, to generate a list of `Space`s to which the user is allowed to upload data.
             """)
     @GetMapping(produces = "application/json")
-    @ApiResponse(responseCode = "200", description = "Successfully listed all `Space`s the user has access to.")
+    @ApiResponse(responseCode = "200", description = "Successfully listed all `Space`s the user has access to, optionally filtered by permission.")
     public ResponseEntity<List<SpaceReadDTO>> getSpaces(@Parameter(hidden = true) JwtAuthenticationToken token, @PathVariable @Parameter(description = "The " +
             "id of the `Organization`.") long orgaId, @Parameter(description = "Name of the permissions.", schema = @Schema(type = "string", allowableValues
-            = {"READ", "WRITE", "DELETE"}), in = ParameterIn.QUERY) @RequestParam(required = false) AuthConfiguration permissions) throws OrganizationmanagerException {
+            = {"READ", "WRITE", "DELETE", "GET"}), in = ParameterIn.QUERY) @RequestParam(required = false) AuthConfiguration permissions) throws OrganizationmanagerException {
         LOG.debug("list spaces of org {}", orgaId);
         AuthConfiguration authConfig = permissions == null ? GET : permissions;
         AuthenticationModel authModel = authHelper.getAuthenticationModel(token);
