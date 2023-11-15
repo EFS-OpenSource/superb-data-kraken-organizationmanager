@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix dependency track findings
 - contributing guide
 - endpoint to get all spaces (by permissions)
+- update log level in global exception handler
 
 ### Changed
 - none
