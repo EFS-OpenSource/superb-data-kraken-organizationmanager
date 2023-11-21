@@ -23,9 +23,15 @@ import jakarta.validation.constraints.NotBlank;
 public class Tag {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
-    @Column(name = "id", unique = true, nullable = false)
+    @SequenceGenerator(
+            name = "tag_seq_generator",
+            sequenceName = "tag_seq",
+            allocationSize = 50
+    )
+    @GeneratedValue(
+            strategy = GenerationType.SEQUENCE,
+            generator = "tag_seq_generator"
+    )
     private Long id;
 
     @NotBlank

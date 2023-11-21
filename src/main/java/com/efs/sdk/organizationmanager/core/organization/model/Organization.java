@@ -41,10 +41,16 @@ public class Organization {
     public static final String REGEX_NAME = "[a-z0-9]{3,24}";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Basic(optional = false)
-    @Column(name = "id", unique = true, nullable = false)
-    private long id = -1L;
+    @SequenceGenerator(
+            name = "organization_seq_generator",
+            sequenceName = "organization_seq",
+            allocationSize = 50
+    )
+    @GeneratedValue(
+            strategy = GenerationType.SEQUENCE,
+            generator = "organization_seq_generator"
+    )
+    private long id;
 
     @NotBlank
     @Column(columnDefinition = "text", unique = true)

@@ -25,10 +25,16 @@ import java.time.ZonedDateTime;
 public class UserRequest {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Basic(optional = false)
-    @Column(name = "id", unique = true, nullable = false)
-    private long id = -1L;
+    @SequenceGenerator(
+            name = "user_request_seq_generator",
+            sequenceName = "user_request_seq",
+            allocationSize = 50
+    )
+    @GeneratedValue(
+            strategy = GenerationType.SEQUENCE,
+            generator = "user_request_seq_generator"
+    )
+    private long id;
 
     @NotBlank
     @Column(columnDefinition = "text")
