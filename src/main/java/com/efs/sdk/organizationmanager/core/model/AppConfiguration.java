@@ -24,10 +24,17 @@ import jakarta.validation.constraints.NotBlank;
 public class AppConfiguration {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Basic(optional = false)
-    @Column(name = "id", unique = true, nullable = false)
-    private long id = -1L;
+    @SequenceGenerator(
+            name = "appconfig_seq_generator",
+            sequenceName = "appconfig_seq",
+            allocationSize = 50
+    )
+    @GeneratedValue(
+            strategy = GenerationType.SEQUENCE,
+            generator = "appconfig_seq_generator"
+    )
+    @Column(name = "id")
+    private long id;
 
     @NotBlank
     @Column(columnDefinition = "text")
