@@ -13,7 +13,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 
-## 1.1.1 - 2023-10-05
+## 1.1.2 - 2023-11-22
+
+
+### Added
+
+- none
+
+### Changed
+
+- fix rights bug assigning roles
+- fix bug getting all organizations
+
+### Removed
+
+- none
+
+## 1.1.1 - 2023-11-22
 
 
 ### Added

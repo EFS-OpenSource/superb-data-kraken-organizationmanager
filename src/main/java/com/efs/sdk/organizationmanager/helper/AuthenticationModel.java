@@ -28,10 +28,10 @@ import static java.util.stream.Collectors.toSet;
 
 public class AuthenticationModel {
 
-    // organizations the user has access to
-    private AuthEntityOrganization[] organizations = new AuthEntityOrganization[0];
     // user has access to public organizations
     private boolean orgaPublicAccess = false;
+    // organizations the user has access to
+    private AuthEntityOrganization[] organizations = new AuthEntityOrganization[0];
     // user has access to public spaces (will also require access to organization)
     private boolean spacePublicAccess = false;
     // spaces the user has access to
@@ -105,7 +105,7 @@ public class AuthenticationModel {
     }
 
     /**
-     * Get organizations, where user has certain permission to (read, write, delete)
+     * Gets those organizations, where a user has a certain permission to (read, write, delete)
      *
      * @param authConfig The AuthConfiguration
      * @return organizations, where user has certain permission to
@@ -115,11 +115,16 @@ public class AuthenticationModel {
             return new String[0];
         }
         Set<String> organizationsByPermission = new HashSet<>();
-        // certain permission in space of organization
-        Stream.of(authConfig.getAllowedRoles()).forEach(allowedRole -> organizationsByPermission.addAll(Arrays.stream(spaces).filter(spaceRole -> spaceRole.getRole().equals(allowedRole)).map(AuthEntitySpace::getOrganization).collect(toSet())));
-        // must also have access-permissions
-        Set<String> orgaAccessRoles =
-                Arrays.stream(organizations).filter(o -> ACCESS_ROLE.equalsIgnoreCase(o.getRole())).map(AuthEntityOrganization::getOrganization).collect(toSet());
+
+        // only filter for READ | WRITE | DELETE permissions
+        // in case of GET ALL organizations are returned
+        if (!AuthConfiguration.GET.equals(authConfig)) {
+            Stream.of(authConfig.getAllowedRoles())
+                    .forEach(allowedRole -> organizationsByPermission.addAll(Arrays.stream(spaces).filter(spaceRole -> spaceRole.getRole().equals(allowedRole)).map(AuthEntitySpace::getOrganization).collect(toSet())));
+        }
+
+        Set<String> orgaAccessRoles = Arrays.stream(organizations).filter(o -> ACCESS_ROLE.equalsIgnoreCase(o.getRole())).map(AuthEntityOrganization::getOrganization).collect(toSet());
+
         organizationsByPermission.retainAll(orgaAccessRoles);
         return organizationsByPermission.toArray(String[]::new);
     }
