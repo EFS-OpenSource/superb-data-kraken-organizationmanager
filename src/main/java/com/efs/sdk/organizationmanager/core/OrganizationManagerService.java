@@ -338,7 +338,7 @@ public class OrganizationManagerService {
         String ownerId = getSubject();
         userService.setUserRoles(orgaAdmin, spaceCreated, Arrays.stream(RoleHelper.SpaceScopeRole.values()).toList(), ownerId);
         AuditLogger.info(LOG, "successfullly created space {} in organization {}", authModel.getToken(),
-                space.getId(), orgaId);
+                spaceCreated.getId(), orgaId);
         return spaceCreated;
     }
 
