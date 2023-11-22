@@ -186,12 +186,19 @@ public class OrganizationService {
     }
 
     /**
-     * Gets an organization by id
+     * Retrieves an organization by its ID.
+     * <p>
+     * This method searches for an organization based on a provided ID. It uses an authentication model to verify
+     * the caller's rights to access the information. If the organization is found and the user has the necessary
+     * access rights, it returns the organization. If the organization is not found or the user lacks access rights,
+     * it throws an OrganizationmanagerException.
      *
-     * @param id        the organization-id
-     * @param authModel AuthenticationModel
-     * @return the organization
-     * @throws OrganizationmanagerException organization not found or invalid rights
+     * @param id        The unique identifier for the organization.
+     * @param authModel An instance of AuthenticationModel used to verify access rights.
+     * @return Organization object representing the retrieved organization.
+     * @throws OrganizationmanagerException If the organization with the specified ID is not found, or if the user does
+     *                                      not have the rights to access the organization. This exception is also thrown
+     *                                      if the organization is private and the user lacks the required access.
      */
     public Organization getOrganization(long id, AuthenticationModel authModel) throws OrganizationmanagerException {
         LOG.info("Retrieve an organization by id");
@@ -201,7 +208,7 @@ public class OrganizationService {
             throw new OrganizationmanagerException(GET_SINGLE_NOT_FOUND);
         }
         Organization organization = orgaOpt.get();
-        // check if user has access to organization or organization is public
+        // check if the user has access to the organization
         if (!canAccessOrganization(organization, authModel)) {
             throw new OrganizationmanagerException(NO_ACCESS_TO_ORGANIZATION);
         }

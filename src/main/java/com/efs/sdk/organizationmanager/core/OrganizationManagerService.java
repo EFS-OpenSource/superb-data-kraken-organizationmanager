@@ -655,7 +655,7 @@ public class OrganizationManagerService {
      * @throws OrganizationmanagerException thrown on errors
      */
     private void assignRole(AuthenticationModel authModel, long orgaId, long spaceId, String userId, RoleHelper.SpaceScopeRole roleScope) throws OrganizationmanagerException {
-        Organization orga = getOrgaAdmin(authModel, orgaId);
+        Organization orga = orgaService.getOrganization(orgaId, authModel);
         Space space = spaceService.getSpaceById(authModel, orgaId, spaceId);
         UserDTO user = userService.getUser(userId);
         userService.assignUserToRole(orga, space, roleScope, user);
