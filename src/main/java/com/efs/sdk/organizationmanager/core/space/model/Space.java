@@ -51,10 +51,17 @@ public class Space {
     @OneToMany(cascade = {CascadeType.ALL})
     private final List<AppConfiguration> appConfigs = new ArrayList<>();
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Basic(optional = false)
-    @Column(name = "id", unique = true, nullable = false)
-    private long id = -1L;
+    @SequenceGenerator(
+            name = "space_seq_generator",
+            sequenceName = "space_seq",
+            allocationSize = 50
+    )
+    @GeneratedValue(
+            strategy = GenerationType.SEQUENCE,
+            generator = "space_seq_generator"
+    )
+    @Column(name = "id")
+    private long id;
     @NotBlank
     @Column(columnDefinition = "text")
     private String name;
