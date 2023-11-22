@@ -3,7 +3,7 @@ apidoc:
 sdk:
   oauth2:
     config-url: https://$(DOMAIN)/auth/realms/$(REALM)/.well-known/openid-configuration
-    client-id: sdk-client
+    client-id: $(CLIENT-ID)
     authorization-grant-type: authorization_code
     scope: openid
     user-name-attribute: preferred_username
@@ -17,7 +17,7 @@ sdk:
       #      context-endpoint: http://localhost:8092/storagemanager/v2.0/context/ # local setup - only used if connection-disabled is false
       context-endpoint: https://$(DOMAIN)/storagemanager/v2.0/context/ # dev setup - only used if connection-disabled is false
 server:
-  port: 8090
+  port: 8094
   servlet:
     context-path: /organizationmanager
 spring:
