@@ -354,8 +354,8 @@ public class OrganizationManagerService {
      */
     public Space updateSpace(AuthenticationModel authModel, long orgaId, Space update) throws OrganizationmanagerException {
         // 1. check rights of caller to create space
-        // check if user has admin-access to organization
-        Organization organization = getOrgaAdminOrOwner(authModel, orgaId);
+        // check if user has permissions to organization
+        Organization organization = orgaService.getOrganization(orgaId, authModel);
 
         // 2. update space entity
         // ensure owners are not updated
@@ -635,7 +635,7 @@ public class OrganizationManagerService {
      * @throws OrganizationmanagerException thrown on errors
      */
     private void assignRole(AuthenticationModel authModel, long orgaId, String userId, RoleHelper.OrganizationScopeRole roleScope) throws OrganizationmanagerException {
-        Organization orga = getOrgaAdmin(authModel, orgaId);
+        Organization orga = getOrgaAdminOrOwner(authModel, orgaId);
         UserDTO user = userService.getUser(userId);
         userService.assignUserToRole(orga, roleScope, user);
         AuditLogger.info(LOG, "successfully assigned roleScope {} to user {} in organization {}",
