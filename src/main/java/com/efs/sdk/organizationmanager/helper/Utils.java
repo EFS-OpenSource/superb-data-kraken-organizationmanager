@@ -61,7 +61,10 @@ public final class Utils {
      * @return owner or not
      */
     public static boolean isOwner(Organization orga) {
-        return Objects.requireNonNull(orga, "Organization must not be null").getOwners().stream().anyMatch(owner -> owner.equals(getSubject()));
+        return Objects.requireNonNull(orga, "Organization must not be null")
+                .getOwners()
+                .stream()
+                .anyMatch(owner -> owner.equals(getSubject()));
     }
 
     /**
