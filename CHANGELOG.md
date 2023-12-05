@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Tests SpaceOwnerController
+
+### Changed
+
+- changed setOwners Endpoint for Organizations and Spaces <br>
+      --> introduced Queryparam `type` to set owners either by email oder userId
+
+### Removed
+
+- none
 
 ---
 

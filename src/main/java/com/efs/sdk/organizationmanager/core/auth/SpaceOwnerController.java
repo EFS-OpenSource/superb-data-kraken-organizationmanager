@@ -63,19 +63,37 @@ public class SpaceOwnerController {
         return ResponseEntity.ok(ownerService.listOwners(authHelper.getAuthenticationModel(token), orgaId, spaceId));
     }
 
-    @Operation(summary = "Sets owners in Space by userIds", description = """
-            Sets all owners in `Space` by userIds.
-                        
-            **CAUTION** overwrites the list of owners - so the list has to be complete""")
+    @Operation(summary = "Assigns Ownership to a Specific Space", description = """
+            This endpoint assigns a new set of owners to the specified `Space`. Owners can be set using either their user IDs or email addresses, based on the specified `type` parameter.
+                       
+            Supported `type` values:
+             - `email`: The list of owners contains email addresses.
+             - `userId`: The list of owners contains user IDs.
+                       
+            *Note*: The operation will not proceed if any provided user IDs or email addresses are invalid or do not exist.
+            
+            **CAUTION** overwrites the list of owners - the provided list should be comprehensive and complete.
+            """)
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponse(responseCode = "200", description = "Successfully set owners by user-ids.")
-    @ApiResponse(responseCode = "403", description = "User does not have permission to set owners", content = @Content(schema = @Schema(hidden = true)))
-    @ApiResponse(responseCode = "404", description = "`Organization`, `Space` or `User` was not found.", content = @Content(schema = @Schema(hidden = true)))
-    public ResponseEntity<SpaceReadDTO> setOwners(@Parameter(hidden = true) JwtAuthenticationToken token, @PathVariable @Parameter(description = "The id of " +
-            "the `Organization`.") long orgaId,
+    @ApiResponse(responseCode = "200", description = "Owners successfully set")
+    @ApiResponse(responseCode = "403", description = "Insufficient permission to set owners.", content = @Content(schema = @Schema(hidden = true)))
+    @ApiResponse(responseCode = "404", description = "Either `Organization`, `Space`, or `User` not found.", content = @Content(schema = @Schema(hidden =
+            true)))
+    public ResponseEntity<SpaceReadDTO> setOwners(
+            @Parameter(hidden = true) JwtAuthenticationToken token,
+            @PathVariable @Parameter(description = "The id of the `Organization`.") long orgaId,
             @PathVariable @Parameter(description = "The id of the `Space`.") long spaceId,
+            @RequestParam(required = false, defaultValue = "userId") String type,
             @RequestBody List<String> owners) throws OrganizationmanagerException {
-        Space space = ownerService.setOwners(authHelper.getAuthenticationModel(token), orgaId, spaceId, owners);
+        Space space;
+        if (type.equalsIgnoreCase("userId")) {
+            space = ownerService.setOwners(authHelper.getAuthenticationModel(token), orgaId, spaceId, owners);
+        } else if (type.equalsIgnoreCase("email")) {
+            space = ownerService.setOwnersByEmail(authHelper.getAuthenticationModel(token), orgaId, spaceId, owners);
+        } else {
+            throw new OrganizationmanagerException(OrganizationmanagerException.ORGANIZATIONMANAGER_ERROR.BAD_REQUEST_PARAM_VALUE, String.format("-- type " +
+                    "'%s' does not exist", type));
+        }
         SpaceReadDTO orgaDTO = converter.convertToDTO(space, SpaceReadDTO.class);
         return ResponseEntity.ok(orgaDTO);
     }

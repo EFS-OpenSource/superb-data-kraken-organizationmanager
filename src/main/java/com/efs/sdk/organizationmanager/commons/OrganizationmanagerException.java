@@ -75,6 +75,7 @@ public class OrganizationmanagerException extends Exception {
         CONFLICTING_IDS_PROVIDED(20031, HttpStatus.CONFLICT, "conflicting object-ids provided"),
         VALIDATION_ERROR(40000, HttpStatus.BAD_REQUEST, "dto validation error."),
         UNABLE_DELETE_ORGA(40001, HttpStatus.BAD_REQUEST, "could not delete organization."),
+        BAD_REQUEST_PARAM_VALUE(40002, HttpStatus.BAD_REQUEST, "bad request param value."),
 
         UNKNOWN_ERROR(50000, HttpStatus.INTERNAL_SERVER_ERROR, "something unexpected happened."),
         DOWNSTREAM_ERROR(50200, HttpStatus.BAD_GATEWAY, "downstream error: "),
