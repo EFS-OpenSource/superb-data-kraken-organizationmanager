@@ -95,7 +95,20 @@ public class OwnerService {
         return orga;
     }
 
-    public Organization setOwnersByEmail(AuthenticationModel authModel, long orgaId, List<String> mails) throws OrganizationmanagerException{
+    /**
+     * Sets the owners of an organization based on their email addresses.
+     * <p>
+     * This method updates the owners of a specified organization by mapping the provided email addresses to user IDs.
+     * It first checks if the caller has the necessary rights to update the organization's owners.
+     * If the caller is authorized, it retrieves the user IDs corresponding to the email addresses and updates the organization's owners.
+     *
+     * @param authModel The authentication model containing the caller's credentials.
+     * @param orgaId    The ID of the organization to update.
+     * @param mails     A list of email addresses of the new owners.
+     * @return The updated organization with the new set of owners.
+     * @throws OrganizationmanagerException if the caller is not authorized to set owners or if any other issue occurs during the update.
+     */
+    public Organization setOwnersByEmail(AuthenticationModel authModel, long orgaId, List<String> mails) throws OrganizationmanagerException {
         // check if the caller has rights to set owners
         Organization orga = orgaService.getOrganization(orgaId, authModel);
         if (!isAuthorizedToSetOrganizationOwners(authModel, orga)) {
