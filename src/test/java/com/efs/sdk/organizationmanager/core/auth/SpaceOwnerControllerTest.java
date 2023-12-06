@@ -16,7 +16,7 @@ limitations under the License.
 package com.efs.sdk.organizationmanager.core.auth;
 
 import com.efs.sdk.organizationmanager.commons.OrganizationmanagerException;
-import com.efs.sdk.organizationmanager.core.auth.model.OwnerDTO;
+import com.efs.sdk.organizationmanager.core.auth.model.UserDTO;
 import com.efs.sdk.organizationmanager.core.space.model.Space;
 import com.efs.sdk.organizationmanager.helper.AuthHelper;
 import com.efs.sdk.organizationmanager.helper.EntityConverter;
@@ -78,9 +78,9 @@ class SpaceOwnerControllerTest {
         return ENDPOINT.replace("{orgaId}", String.valueOf(orgaId)).replace("{spaceId}", String.valueOf(spaceId));
     }
 
-    private static List<OwnerDTO> ownerDTOList() {
-        OwnerDTO ownerDTO = new OwnerDTO("id", "firstname", "lastname");
-        return Collections.singletonList(ownerDTO);
+    private static List<UserDTO> UserDTOList() {
+        UserDTO userDTO = new UserDTO();
+        return Collections.singletonList(userDTO);
     }
 
     @Test
@@ -110,12 +110,12 @@ class SpaceOwnerControllerTest {
 
     @Test
     void givenCorrectOwners_whenGetOwners_thenOk() throws Exception {
-        given(ownerService.listOwners(any(), anyLong(), anyLong())).willReturn(ownerDTOList());
+        given(ownerService.listOwners(any(), anyLong(), anyLong())).willReturn(UserDTOList());
         MvcResult result = mvc.perform(get(getEndpoint(1L, 1L)).with(jwt())).andReturn();
         MockHttpServletResponse response = result.getResponse();
         assertNotNull(response);
         assertEquals(HttpStatus.OK.value(), response.getStatus());
-        JSONAssert.assertEquals(objectMapper.writeValueAsString(ownerDTOList()), response.getContentAsString(), false);
+        JSONAssert.assertEquals(objectMapper.writeValueAsString(UserDTOList()), response.getContentAsString(), false);
     }
 
 

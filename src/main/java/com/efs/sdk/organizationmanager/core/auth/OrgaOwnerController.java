@@ -17,7 +17,7 @@ package com.efs.sdk.organizationmanager.core.auth;
 
 import com.efs.sdk.common.domain.dto.OrganizationReadDTO;
 import com.efs.sdk.organizationmanager.commons.OrganizationmanagerException;
-import com.efs.sdk.organizationmanager.core.auth.model.OwnerDTO;
+import com.efs.sdk.organizationmanager.core.auth.model.UserDTO;
 import com.efs.sdk.organizationmanager.core.organization.model.Organization;
 import com.efs.sdk.organizationmanager.helper.AuthHelper;
 import com.efs.sdk.organizationmanager.helper.EntityConverter;
@@ -58,7 +58,7 @@ public class OrgaOwnerController {
     @ApiResponse(responseCode = "200", description = "Successfully listed all owners in the `Organization`.")
     @ApiResponse(responseCode = "403", description = "User does not have permission to list owners", content = @Content(schema = @Schema(hidden = true)))
     @ApiResponse(responseCode = "404", description = "Organization or User was not found.", content = @Content(schema = @Schema(hidden = true)))
-    public ResponseEntity<List<OwnerDTO>> listOwners(@Parameter(hidden = true) JwtAuthenticationToken token, @PathVariable @Parameter(description =
+    public ResponseEntity<List<UserDTO>> listOwners(@Parameter(hidden = true) JwtAuthenticationToken token, @PathVariable @Parameter(description =
             "The id of the `Organization`.") long orgaId) throws OrganizationmanagerException {
         return ResponseEntity.ok(ownerService.listOwners(authHelper.getAuthenticationModel(token), orgaId));
     }
