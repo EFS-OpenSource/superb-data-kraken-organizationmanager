@@ -17,7 +17,7 @@ package com.efs.sdk.organizationmanager.core.auth;
 
 import com.efs.sdk.common.domain.dto.SpaceReadDTO;
 import com.efs.sdk.organizationmanager.commons.OrganizationmanagerException;
-import com.efs.sdk.organizationmanager.core.auth.model.OwnerDTO;
+import com.efs.sdk.organizationmanager.core.auth.model.UserDTO;
 import com.efs.sdk.organizationmanager.core.space.model.Space;
 import com.efs.sdk.organizationmanager.helper.AuthHelper;
 import com.efs.sdk.organizationmanager.helper.EntityConverter;
@@ -57,7 +57,7 @@ public class SpaceOwnerController {
     @ApiResponse(responseCode = "200", description = "Successfully listed all owners in the `Space`.")
     @ApiResponse(responseCode = "403", description = "User does not have permission to list owners", content = @Content(schema = @Schema(hidden = true)))
     @ApiResponse(responseCode = "404", description = "`Organization` or `Space` was not found.", content = @Content(schema = @Schema(hidden = true)))
-    public ResponseEntity<List<OwnerDTO>> listOwners(@Parameter(hidden = true) JwtAuthenticationToken token, @PathVariable @Parameter(description = "The id " +
+    public ResponseEntity<List<UserDTO>> listOwners(@Parameter(hidden = true) JwtAuthenticationToken token, @PathVariable @Parameter(description = "The id " +
             "of the `Organization`.") long orgaId,
             @PathVariable @Parameter(description = "The id of the `Space`.") long spaceId) throws OrganizationmanagerException {
         return ResponseEntity.ok(ownerService.listOwners(authHelper.getAuthenticationModel(token), orgaId, spaceId));

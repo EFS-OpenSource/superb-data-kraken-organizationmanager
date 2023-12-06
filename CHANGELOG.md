@@ -15,12 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- replace OwnerDTO with UserDTO
 - changed setOwners Endpoint for Organizations and Spaces <br>
-      --> introduced Queryparam `type` to set owners either by email oder userId
+  --> introduced Queryparam `type` to set owners either by email oder userId
 
 ### Removed
 
-- none
+- OwnerDTO
 
 ---
 

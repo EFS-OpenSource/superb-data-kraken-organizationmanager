@@ -17,7 +17,6 @@ package com.efs.sdk.organizationmanager.core.auth;
 
 import com.efs.sdk.logging.AuditLogger;
 import com.efs.sdk.organizationmanager.commons.OrganizationmanagerException;
-import com.efs.sdk.organizationmanager.core.auth.model.OwnerDTO;
 import com.efs.sdk.organizationmanager.core.auth.model.UserDTO;
 import com.efs.sdk.organizationmanager.core.organization.OrganizationService;
 import com.efs.sdk.organizationmanager.core.organization.model.Organization;
@@ -62,9 +61,9 @@ public class OwnerService {
      * @return the owners
      * @throws OrganizationmanagerException thrown on errors
      */
-    public List<OwnerDTO> listOwners(AuthenticationModel authModel, long orgaId) throws OrganizationmanagerException {
+    public List<UserDTO> listOwners(AuthenticationModel authModel, long orgaId) throws OrganizationmanagerException {
         Organization orga = orgaService.getOrganization(orgaId, authModel);
-        return getOwnerDTOs(orga.getOwners());
+        return getUserDTOs(orga.getOwners());
     }
 
     /**
@@ -193,9 +192,9 @@ public class OwnerService {
      * @return the owners
      * @throws OrganizationmanagerException thrown on errors
      */
-    public List<OwnerDTO> listOwners(AuthenticationModel authModel, long orgaId, long spaceId) throws OrganizationmanagerException {
+    public List<UserDTO> listOwners(AuthenticationModel authModel, long orgaId, long spaceId) throws OrganizationmanagerException {
         Space space = spaceService.getSpaceById(authModel, orgaId, spaceId);
-        return getOwnerDTOs(space.getOwners());
+        return getUserDTOs(space.getOwners());
     }
 
     /**
@@ -335,14 +334,13 @@ public class OwnerService {
         return authModel.isSuperuser() || isOwner(space);
     }
 
-    private List<OwnerDTO> getOwnerDTOs(List<String> userIds) throws OrganizationmanagerException {
-        List<OwnerDTO> ownerDTOs = new ArrayList<>();
+    private List<UserDTO> getUserDTOs(List<String> userIds) throws OrganizationmanagerException {
+        List<UserDTO> userDTOs = new ArrayList<>();
         for (String userId : userIds) {
             UserDTO user = userService.getUserView(userId);
-            OwnerDTO ownerDTO = new OwnerDTO(userId, user.getFirstName(), user.getLastName());
-            ownerDTOs.add(ownerDTO);
+            userDTOs.add(user);
         }
-        return ownerDTOs;
+        return userDTOs;
     }
 
 }
