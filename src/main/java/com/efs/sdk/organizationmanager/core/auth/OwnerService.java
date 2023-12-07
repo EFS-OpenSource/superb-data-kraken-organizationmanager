@@ -17,7 +17,6 @@ package com.efs.sdk.organizationmanager.core.auth;
 
 import com.efs.sdk.logging.AuditLogger;
 import com.efs.sdk.organizationmanager.commons.OrganizationmanagerException;
-import com.efs.sdk.organizationmanager.core.auth.model.OwnerDTO;
 import com.efs.sdk.organizationmanager.core.auth.model.UserDTO;
 import com.efs.sdk.organizationmanager.core.organization.OrganizationService;
 import com.efs.sdk.organizationmanager.core.organization.model.Organization;
@@ -62,9 +61,9 @@ public class OwnerService {
      * @return the owners
      * @throws OrganizationmanagerException thrown on errors
      */
-    public List<OwnerDTO> listOwners(AuthenticationModel authModel, long orgaId) throws OrganizationmanagerException {
+    public List<UserDTO> listOwners(AuthenticationModel authModel, long orgaId) throws OrganizationmanagerException {
         Organization orga = orgaService.getOrganization(orgaId, authModel);
-        return getOwnerDTOs(orga.getOwners());
+        return getUserDTOs(orga.getOwners());
     }
 
     /**
@@ -88,6 +87,41 @@ public class OwnerService {
                 throw new OrganizationmanagerException(UNABLE_GET_USER, format(" with userId %s", o));
             }
         }
+        orga.setOwners(owners);
+        orgaService.updateOrganizationEntity(orga, authModel);
+        AuditLogger.info(LOG, "successfully updated owners for organization id {}, owners: {}",
+                authModel.getToken(), orgaId, owners);
+        return orga;
+    }
+
+    /**
+     * Sets the owners of an organization based on their email addresses.
+     * <p>
+     * This method updates the owners of a specified organization by mapping the provided email addresses to user IDs.
+     * It first checks if the caller has the necessary rights to update the organization's owners.
+     * If the caller is authorized, it retrieves the user IDs corresponding to the email addresses and updates the organization's owners.
+     *
+     * @param authModel The authentication model containing the caller's credentials.
+     * @param orgaId    The ID of the organization to update.
+     * @param mails     A list of email addresses of the new owners.
+     * @return The updated organization with the new set of owners.
+     * @throws OrganizationmanagerException if the caller is not authorized to set owners or if any other issue occurs during the update.
+     */
+    public Organization setOwnersByEmail(AuthenticationModel authModel, long orgaId, List<String> mails) throws OrganizationmanagerException {
+        // check if the caller has rights to set owners
+        Organization orga = orgaService.getOrganization(orgaId, authModel);
+        if (!isAuthorizedToSetOrganizationOwners(authModel, orga)) {
+            AuditLogger.error(LOG, "is not authorized to set owners for organization id {}",
+                    authModel.getToken(), orgaId);
+            throw new OrganizationmanagerException(FORBIDDEN);
+        }
+
+        // get user ids
+        List<String> owners = new ArrayList<>();
+        for (var mail : mails) {
+            owners.add(userService.getUserByEmail(mail).getId());
+        }
+
         orga.setOwners(owners);
         orgaService.updateOrganizationEntity(orga, authModel);
         AuditLogger.info(LOG, "successfully updated owners for organization id {}, owners: {}",
@@ -158,9 +192,9 @@ public class OwnerService {
      * @return the owners
      * @throws OrganizationmanagerException thrown on errors
      */
-    public List<OwnerDTO> listOwners(AuthenticationModel authModel, long orgaId, long spaceId) throws OrganizationmanagerException {
+    public List<UserDTO> listOwners(AuthenticationModel authModel, long orgaId, long spaceId) throws OrganizationmanagerException {
         Space space = spaceService.getSpaceById(authModel, orgaId, spaceId);
-        return getOwnerDTOs(space.getOwners());
+        return getUserDTOs(space.getOwners());
     }
 
     /**
@@ -188,6 +222,49 @@ public class OwnerService {
         space.setOwners(owners);
         Organization orga = orgaService.getOrganization(orgaId, authModel);
         spaceService.updateSpaceEntity(authModel, orga, space);
+        // assign each of the owners to all of the space-roles
+        for (var owner : owners) {
+            userService.assignRoles(orga, space, Arrays.stream(RoleHelper.SpaceScopeRole.values()).toList(), owner);
+        }
+        AuditLogger.info(LOG, "successfully added owners for space id {} in organization id {}, owners: {}",
+                authModel.getToken(), owners, orgaId, spaceId);
+        return space;
+    }
+
+    /**
+     * Sets owners in the specified space using their email addresses.
+     * <p>
+     * This method assigns ownership of a space within an organization to a list of users identified by their email addresses.
+     * It first validates the caller's authorization to set owners, converts the emails to user IDs, and updates the space ownership.
+     * Each new owner is then assigned all roles associated with the space.
+     * </p>
+     *
+     * @param authModel the authentication model containing user credentials and context
+     * @param orgaId    the unique identifier of the organization
+     * @param spaceId   the unique identifier of the space within the organization
+     * @param mails     a list of email addresses corresponding to the users to be set as owners
+     * @return the updated Space object with the new set of owners
+     * @throws OrganizationmanagerException if the user is not authorized or if any other error occurs
+     */
+    public Space setOwnersByEmail(AuthenticationModel authModel, long orgaId, long spaceId, List<String> mails) throws OrganizationmanagerException {
+        // check if the caller has rights to set owners
+        Space space = spaceService.getSpaceById(authModel, orgaId, spaceId);
+        if (!isAuthorizedToSetSpaceOwners(authModel, space)) {
+            AuditLogger.error(LOG, "is not authorized to set owners for space id {} in organization id {}",
+                    authModel.getToken(), spaceId, orgaId);
+            throw new OrganizationmanagerException(FORBIDDEN);
+        }
+
+        // get user ids
+        List<String> owners = new ArrayList<>();
+        for (var mail : mails) {
+            owners.add(userService.getUserByEmail(mail).getId());
+        }
+
+        space.setOwners(owners);
+        Organization orga = orgaService.getOrganization(orgaId, authModel);
+        spaceService.updateSpaceEntity(authModel, orga, space);
+
         // assign each of the owners to all of the space-roles
         for (var owner : owners) {
             userService.assignRoles(orga, space, Arrays.stream(RoleHelper.SpaceScopeRole.values()).toList(), owner);
@@ -257,14 +334,13 @@ public class OwnerService {
         return authModel.isSuperuser() || isOwner(space);
     }
 
-    private List<OwnerDTO> getOwnerDTOs(List<String> userIds) throws OrganizationmanagerException {
-        List<OwnerDTO> ownerDTOs = new ArrayList<>();
+    private List<UserDTO> getUserDTOs(List<String> userIds) throws OrganizationmanagerException {
+        List<UserDTO> userDTOs = new ArrayList<>();
         for (String userId : userIds) {
             UserDTO user = userService.getUserView(userId);
-            OwnerDTO ownerDTO = new OwnerDTO(userId, user.getFirstName(), user.getLastName());
-            ownerDTOs.add(ownerDTO);
+            userDTOs.add(user);
         }
-        return ownerDTOs;
+        return userDTOs;
     }
 
 }

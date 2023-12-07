@@ -16,7 +16,7 @@ limitations under the License.
 package com.efs.sdk.organizationmanager.core.auth;
 
 import com.efs.sdk.organizationmanager.commons.OrganizationmanagerException;
-import com.efs.sdk.organizationmanager.core.auth.model.OwnerDTO;
+import com.efs.sdk.organizationmanager.core.auth.model.UserDTO;
 import com.efs.sdk.organizationmanager.core.space.model.Space;
 import com.efs.sdk.organizationmanager.helper.AuthHelper;
 import com.efs.sdk.organizationmanager.helper.EntityConverter;
@@ -37,13 +37,12 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.util.Collections;
 import java.util.List;
 
-import static com.efs.sdk.organizationmanager.commons.OrganizationmanagerException.ORGANIZATIONMANAGER_ERROR.UNABLE_GET_ROLE;
+import static com.efs.sdk.organizationmanager.commons.OrganizationmanagerException.ORGANIZATIONMANAGER_ERROR.*;
 import static com.efs.sdk.organizationmanager.core.auth.SpaceOwnerController.ENDPOINT;
 import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
@@ -71,6 +70,9 @@ class SpaceOwnerControllerTest {
     @MockBean
     private EntityConverter converter;
 
+    private final String userIds = "[\"user1\", \"user2\"]";
+    private final String userEmails = "[\"user1@example.com\", \"user2@example.com\"]";
+
     public SpaceOwnerControllerTest() throws JsonProcessingException {
     }
 
@@ -78,9 +80,9 @@ class SpaceOwnerControllerTest {
         return ENDPOINT.replace("{orgaId}", String.valueOf(orgaId)).replace("{spaceId}", String.valueOf(spaceId));
     }
 
-    private static List<OwnerDTO> ownerDTOList() {
-        OwnerDTO ownerDTO = new OwnerDTO("id", "firstname", "lastname");
-        return Collections.singletonList(ownerDTO);
+    private static List<UserDTO> UserDTOList() {
+        UserDTO userDTO = new UserDTO();
+        return Collections.singletonList(userDTO);
     }
 
     @Test
@@ -110,12 +112,12 @@ class SpaceOwnerControllerTest {
 
     @Test
     void givenCorrectOwners_whenGetOwners_thenOk() throws Exception {
-        given(ownerService.listOwners(any(), anyLong(), anyLong())).willReturn(ownerDTOList());
+        given(ownerService.listOwners(any(), anyLong(), anyLong())).willReturn(UserDTOList());
         MvcResult result = mvc.perform(get(getEndpoint(1L, 1L)).with(jwt())).andReturn();
         MockHttpServletResponse response = result.getResponse();
         assertNotNull(response);
         assertEquals(HttpStatus.OK.value(), response.getStatus());
-        JSONAssert.assertEquals(objectMapper.writeValueAsString(ownerDTOList()), response.getContentAsString(), false);
+        JSONAssert.assertEquals(objectMapper.writeValueAsString(UserDTOList()), response.getContentAsString(), false);
     }
 
 
@@ -137,7 +139,11 @@ class SpaceOwnerControllerTest {
         IllegalArgumentException except = new IllegalArgumentException("anything");
         given(ownerService.setOwners(any(), anyLong(), anyLong(), any())).willThrow(except);
 
-        mvc.perform(put(getEndpoint(1L, 1L)).with(jwt()).contentType(APPLICATION_JSON).content(content)).andExpect(status().is5xxServerError());
+        mvc.perform(put(getEndpoint(1L, 1L))
+                .with(jwt())
+                .contentType(APPLICATION_JSON)
+                .content(content))
+                .andExpect(status().is5xxServerError());
     }
 
     @Test
@@ -201,5 +207,71 @@ class SpaceOwnerControllerTest {
         mvc.perform(put(format("%s/email/test", getEndpoint(1L, 1L))).with(jwt())).andExpect(status().is4xxClientError());
     }
 
+    @Test
+    void testSuccessfulOwnerAssignmentWithUserIds() throws Exception {
+        given(ownerService.setOwners(any(), anyLong(), anyLong(), any())).willReturn(new Space());
+
+        mvc.perform(put(getEndpoint(1L, 1L) + "?type=userId")
+                .with(jwt())
+                .contentType(APPLICATION_JSON)
+                .content(userIds))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testSuccessfulOwnerAssignmentWithEmails() throws Exception {
+        given(ownerService.setOwnersByEmail(any(), anyLong(), anyLong(), any())).willReturn(new Space());
+
+        mvc.perform(put(getEndpoint(1L, 1L) + "?type=email")
+                .with(jwt())
+                .contentType(APPLICATION_JSON)
+                .content(userEmails))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testOwnerAssignmentWithInvalidUserIds() throws Exception {
+        // Assuming the service throws an exception for invalid user IDs
+        given(ownerService.setOwners(any(), anyLong(), anyLong(), any())).willThrow(new OrganizationmanagerException(UNABLE_GET_USER));
+
+        mvc.perform(put(getEndpoint(1L, 1L) + "?type=userId")
+                .with(jwt())
+                .contentType(APPLICATION_JSON)
+                .content("[\"invalidUserId\"]"))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void testOwnerAssignmentWithInvalidEmails() throws Exception {
+        // Assuming the service throws an exception for invalid emails
+        given(ownerService.setOwnersByEmail(any(), anyLong(), anyLong(), any())).willThrow(new OrganizationmanagerException(UNABLE_GET_USER));
+
+        mvc.perform(put(getEndpoint(1L, 1L) + "?type=email")
+                .with(jwt())
+                .contentType(APPLICATION_JSON)
+                .content("[\"invalidEmail@example.com\"]"))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void testOwnerAssignmentWithUnauthorizedAccess() throws Exception {
+        // Simulate unauthorized access
+        mvc.perform(put(getEndpoint(1L, 1L) + "?type=userId")
+                .contentType(APPLICATION_JSON)
+                .content(userIds))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void testOwnerAssignmentWithNonexistentOrgOrSpace() throws Exception {
+        // Simulate the scenario where the org or space doesn't exist
+        given(ownerService.setOwners(any(), eq(999L), eq(999L), any())).willThrow(new OrganizationmanagerException(GET_SINGLE_NOT_FOUND));
+
+        mvc.perform(put(getEndpoint(999L, 999L) + "?type=userId")
+                .with(jwt())
+                .contentType(APPLICATION_JSON)
+                .content(userIds))
+                .andExpect(status().isNotFound());
+    }
 
 }
