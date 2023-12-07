@@ -63,7 +63,7 @@ public class SpaceOwnerController {
         return ResponseEntity.ok(ownerService.listOwners(authHelper.getAuthenticationModel(token), orgaId, spaceId));
     }
 
-    @Operation(summary = "Assigns Ownership to a Specific Space", description = """
+    @Operation(summary = "Assigns Ownership to a specific Space", description = """
             This endpoint assigns a new set of owners to the specified `Space`. Owners can be set using either their user IDs or email addresses, based on the specified `type` parameter.
                        
             Supported `type` values:

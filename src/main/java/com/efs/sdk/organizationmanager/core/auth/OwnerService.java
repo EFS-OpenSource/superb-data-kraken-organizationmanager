@@ -117,7 +117,7 @@ public class OwnerService {
         }
 
         // get user ids
-        ArrayList<String> owners = new ArrayList<>();
+        List<String> owners = new ArrayList<>();
         for (var mail : mails) {
             owners.add(userService.getUserByEmail(mail).getId());
         }
@@ -256,7 +256,7 @@ public class OwnerService {
         }
 
         // get user ids
-        ArrayList<String> owners = new ArrayList<>();
+        List<String> owners = new ArrayList<>();
         for (var mail : mails) {
             owners.add(userService.getUserByEmail(mail).getId());
         }

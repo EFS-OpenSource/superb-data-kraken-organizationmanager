@@ -63,7 +63,7 @@ public class OrgaOwnerController {
         return ResponseEntity.ok(ownerService.listOwners(authHelper.getAuthenticationModel(token), orgaId));
     }
 
-    @Operation(summary = "Assigns Ownership to a Specific Organization", description = """
+    @Operation(summary = "Assigns Ownership to a specific Organization", description = """
             This endpoint assigns a new set of owners to the specified `Organization`. Owners can be set using either their user IDs or email addresses, based on the specified `type` parameter.
                        
             Supported `type` values:
