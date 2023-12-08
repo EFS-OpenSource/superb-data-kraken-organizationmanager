@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+
 ### Added
 
 - Tests SpaceOwnerController
@@ -18,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - replace OwnerDTO with UserDTO
 - changed setOwners Endpoint for Organizations and Spaces <br>
   --> introduced Queryparam `type` to set owners either by email oder userId
+- "loadingzone" is no longer a space
+  - delete from database
+- updated logging-library
 
 ### Removed
 
@@ -73,6 +77,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - none
+
+---
 
 ## 1.1.0 - 2023-10-05
 

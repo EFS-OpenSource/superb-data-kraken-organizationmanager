@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.efs.sdk.common.domain.model.Confidentiality.PUBLIC;
-import static com.efs.sdk.organizationmanager.core.space.model.Space.SPACE_LOADINGZONE;
 import static com.efs.sdk.organizationmanager.helper.AuthConfiguration.GET;
 import static com.efs.sdk.organizationmanager.helper.AuthConfiguration.READ;
 import static com.efs.sdk.organizationmanager.helper.AuthEntityOrganization.ACCESS_ROLE;
@@ -174,55 +173,6 @@ class SpaceServiceTest {
         assertThrows(OrganizationmanagerException.class, () -> service.getSpaceById(new AuthenticationModel(), orga.getId(), space.getId()));
     }
 
-    @Test
-    void givenSupplier_whenGetSpaceLoadingzone_thenOk() throws Exception {
-        Organization orga = new Organization();
-        orga.setId(1L);
-        orga.setName("test");
-        String supplierSpace = "test";
-
-        Space space = new Space();
-        space.setName(SPACE_LOADINGZONE);
-        space.setId(1L);
-        space.setOrganizationId(orga.getId());
-
-        given(repo.findByOrganizationIdAndId(anyLong(), anyLong())).willReturn(Optional.of(space));
-        given(repo.findByOrganizationIdAndNameIn(anyLong(), any())).willReturn(List.of(space));
-        given(orgaService.getOrganization(anyLong(), any())).willReturn(orga);
-
-        AuthenticationModel authModel = new AuthenticationModel();
-        authModel.setOrganizations(new AuthEntityOrganization[]{new AuthEntityOrganization(format("org_%s_access", orga.getName()))});
-        authModel.setSpaces(new AuthEntitySpace[]{new AuthEntitySpace(format("%s_%s_%s", orga.getName(), supplierSpace, "supplier"))});
-
-        Space actual = service.getSpaceById(authModel, orga.getId(), space.getId());
-        assertNotNull(actual);
-        assertEquals(space.getId(), actual.getId());
-        assertEquals(space.getName(), actual.getName());
-        assertNotNull(actual.getConfidentiality());
-    }
-
-    @Test
-    void givenNoSupplier_whenGetSpaceLoadingzone_thenOk() throws Exception {
-        Organization orga = new Organization();
-        orga.setId(1L);
-        orga.setName("test");
-        String supplierSpace = "test";
-
-        Space space = new Space();
-        space.setName(SPACE_LOADINGZONE);
-        space.setId(1L);
-        space.setOrganizationId(orga.getId());
-
-        given(repo.findByOrganizationIdAndId(anyLong(), anyLong())).willReturn(Optional.of(space));
-        given(repo.findByOrganizationIdAndNameIn(anyLong(), any())).willReturn(Collections.emptyList());
-        given(orgaService.getOrganization(anyLong(), any())).willReturn(orga);
-
-        AuthenticationModel authModel = new AuthenticationModel();
-        authModel.setOrganizations(new AuthEntityOrganization[]{new AuthEntityOrganization(format("org_%s_access", orga.getName()))});
-        authModel.setSpaces(new AuthEntitySpace[]{new AuthEntitySpace(format("%s_%s_%s", orga.getName(), supplierSpace, "user"))});
-
-        assertThrows(OrganizationmanagerException.class, () -> service.getSpaceById(authModel, orga.getId(), space.getId()));
-    }
 
     @Test
     void givenPublicAccess_whenGetSpace_thenOk() throws Exception {
@@ -694,22 +644,6 @@ class SpaceServiceTest {
         space.setId(1L);
         given(repo.findByOrganizationId(anyLong())).willReturn(List.of(space));
         willDoNothing().given(repo).delete(any());
-        assertDoesNotThrow(() -> service.propertyChange(event));
-    }
-
-    @Test
-    void givenCreateOrganizationEvent_whenPropertyChange_thenCreateLoadingzone() throws Exception {
-        Organization orga = new Organization();
-        orga.setId(1L);
-        orga.setName("test");
-        PropertyChangeEvent event = new PropertyChangeEvent(orgaService, OrganizationService.PROP_ORG_CREATED, null, orga);
-
-        Space persisted = new Space();
-        persisted.setName(SPACE_LOADINGZONE);
-        persisted.setId(1L);
-
-        given(orgaService.getOrganization(anyLong(), any())).willReturn(orga);
-        given(repo.saveAndFlush(any())).willReturn(persisted);
         assertDoesNotThrow(() -> service.propertyChange(event));
     }
 
