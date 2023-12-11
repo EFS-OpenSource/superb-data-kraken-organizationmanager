@@ -212,9 +212,7 @@ public class OrganizationManagerService {
         }
 
         // update entity AFTER all requests were successful
-        Organization updated = orgaService.updateOrganizationEntity(update, authModel);
-
-        return updated;
+        return orgaService.updateOrganizationEntity(update, authModel);
 
     }
 
@@ -360,12 +358,12 @@ public class OrganizationManagerService {
 
         Space original = spaceService.getSpaceById(authModel, orgaId, update.getId());
 
-        if (!canUpdateSpace(organization, original, authModel)) {
+        if (!canUpdateSpace(original, authModel)) {
             AuditLogger.error(LOG, "lacks permissions to update space {}!", authModel.getToken(), orgaId);
             throw new OrganizationmanagerException(FORBIDDEN);
         }
 
-        // Check if all capabilities in 'original' are present in 'update'
+        // Only allow adding new Capabilities
         if (!update.getCapabilities().containsAll(original.getCapabilities())) {
             throw new OrganizationmanagerException(INVALID_DATA, "Capabilities cannot be removed from spaces.");
         }
@@ -411,7 +409,7 @@ public class OrganizationManagerService {
         return updated;
     }
 
-    private boolean canUpdateSpace(Organization org, Space spc, AuthenticationModel authModel) {
+    private boolean canUpdateSpace(Space spc, AuthenticationModel authModel) {
         return authModel.hasPermission(spc, AuthConfiguration.WRITE)
                 || isOwner(spc)
                 || authModel.isSuperuser();

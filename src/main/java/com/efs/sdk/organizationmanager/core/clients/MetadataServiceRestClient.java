@@ -123,13 +123,13 @@ public class MetadataServiceRestClient extends AbstractServiceRestClient {
     }
 
     @Override
-    protected void updateSpaceContextImpl(Organization org, Space original, Space spc) throws OrganizationmanagerException {
+    protected void updateSpaceContextImpl(Organization org, Space original, Space update) throws OrganizationmanagerException {
         LOG.debug("trying to update metadata Space context...");
         OrganizationContextDTO orgDTO = converter.convertToDTO(org, OrganizationContextDTO.class);
-        SpaceContextDTO spcDTO = converter.convertToDTO(spc, SpaceContextDTO.class);
+        SpaceContextDTO spcDTO = converter.convertToDTO(update, SpaceContextDTO.class);
         spcDTO.setOrganization(orgDTO);
 
-        URI uri = URI.create(format("%s/organization/%s/space/%s", serviceEndpoint, org.getName(), spc.getName())).normalize();
+        URI uri = URI.create(format("%s/organization/%s/space/%s", serviceEndpoint, org.getName(), update.getName())).normalize();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(APPLICATION_JSON);
         headers.setBearerAuth(getAccessToken());
