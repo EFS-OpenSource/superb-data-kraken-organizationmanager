@@ -126,30 +126,8 @@ public class SpaceService implements PropertyChangeListener {
             return false;
         }
 
-        // if user has access to
-        if (space.getName().equals(Space.SPACE_LOADINGZONE) && canAccessLoadingzone(space.getOrganizationId(), authModel)) {
-            return true;
-        }
-
         boolean publicAccess = PUBLIC.equals(space.getConfidentiality()) && authModel.isSpacePublicAccess();
         return publicAccess || spaceAccess(space, authModel.getSpacesByPermission(READ)) || spaceAccess(space, authModel.getSpacesByPermission(GET));
-    }
-
-    /**
-     * Checks if user has access to loadingzone (by implicit write-rights to other
-     * spaces within organization)
-     *
-     * @param organizationId the organization-id
-     * @param authModel      the AuthenticationModel
-     * @return access to loadingzone
-     */
-    private boolean canAccessLoadingzone(Long organizationId, AuthenticationModel authModel) {
-        String[] writeRights = authModel.getSpacesByPermission(WRITE);
-        if (writeRights == null) {
-            return false;
-        }
-        List<Space> writableSpaces = repo.findByOrganizationIdAndNameIn(organizationId, Arrays.asList(writeRights));
-        return !writableSpaces.isEmpty();
     }
 
     /**
@@ -215,18 +193,10 @@ public class SpaceService implements PropertyChangeListener {
      */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        try {
-            if (OrganizationService.PROP_ORG_DELETED.equals(evt.getPropertyName())) {
-                Object oldValue = evt.getOldValue();
-                Organization orga = (Organization) oldValue;
-                deleteSpaces(orga.getId());
-            } else if (OrganizationService.PROP_ORG_CREATED.equals(evt.getPropertyName())) {
-                Object newValue = evt.getNewValue();
-                Organization orga = (Organization) newValue;
-                createLoadingzone(orga);
-            }
-        } catch (OrganizationmanagerException e) {
-            throw new IllegalArgumentException(e.getMessage(), e);
+        if (OrganizationService.PROP_ORG_DELETED.equals(evt.getPropertyName())) {
+            Object oldValue = evt.getOldValue();
+            Organization orga = (Organization) oldValue;
+            deleteSpaces(orga.getId());
         }
     }
 
@@ -337,26 +307,6 @@ public class SpaceService implements PropertyChangeListener {
         if (spaceOpt.isPresent() && spaceOpt.get().getId() != item.getId()) {
             throw new OrganizationmanagerException(SAVE_SPACE_NAME_FOUND);
         }
-    }
-
-    /**
-     * Creates a special space called "loadingzone" for a new organization.
-     *
-     * @param orga the organization
-     * @throws OrganizationmanagerException storage-organization-errors
-     */
-    private Space createLoadingzone(Organization orga) throws OrganizationmanagerException {
-
-        Space space = new Space();
-        space.setCreated(ZonedDateTime.now());
-        space.setName(Space.SPACE_LOADINGZONE);
-        space.setDescription("loadingzone for " + orga.getName());
-        space.setConfidentiality(orga.getConfidentiality());
-        space.setState(OPEN);
-        space.setMetadataGenerate(false);
-        space.setCapabilities(Collections.singletonList(Capability.STORAGE));
-
-        return createSpaceEntity(orga, space);
     }
 
     /**

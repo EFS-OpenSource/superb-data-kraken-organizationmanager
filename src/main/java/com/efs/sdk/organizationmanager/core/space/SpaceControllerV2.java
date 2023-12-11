@@ -130,8 +130,7 @@ public class SpaceControllerV2 {
         LOG.debug("list spaces of org {}", orgaId);
         AuthConfiguration authConfig = permissions == null ? GET : permissions;
         AuthenticationModel authModel = authHelper.getAuthenticationModel(token);
-        List<Space> spaces =
-                service.getSpaces(authModel, orgaId, authConfig).stream().filter(s -> !Space.SPACE_LOADINGZONE.equalsIgnoreCase(s.getName())).toList();
+        List<Space> spaces = service.getSpaces(authModel, orgaId, authConfig).stream().toList();
         for (Space space : spaces) {
             updateOwners(space);
         }

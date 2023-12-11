@@ -39,7 +39,6 @@ public class Space {
      * <a href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules#microsoftstorage">...</a>
      */
     public static final String REGEX_NAME = "[a-z0-9-]{3,63}";
-    public static final String SPACE_LOADINGZONE = "loadingzone";
 
     @OneToMany(cascade = {CascadeType.ALL})
     private final List<Tag> tags = new ArrayList<>();
