@@ -179,8 +179,6 @@ public class OrganizationManagerService {
         // ensure owners are not updated
         Organization original = getOrgaAdminOrOwner(authModel, update.getId());
         update.setOwners(original.getOwners());
-        // update entity
-        Organization orgPersisted = orgaService.updateOrganizationEntity(update, authModel);
 
         // 2. create organization contexts
         // for every service client a task is scheduled and run in parallel
@@ -194,7 +192,7 @@ public class OrganizationManagerService {
             for (var client : serviceRestClients) {
                 Callable<Void> task = () -> {
                     SecurityContextHolder.setContext(securityContext);
-                    client.updateOrganizationContext(orgPersisted);
+                    client.updateOrganizationContext(update);
                     return null;
                 };
                 tasks.add(task);
@@ -213,7 +211,10 @@ public class OrganizationManagerService {
             executorService.shutdown();
         }
 
-        return orgPersisted;
+        // update entity AFTER all requests were successful
+        Organization updated = orgaService.updateOrganizationEntity(update, authModel);
+
+        return updated;
 
     }
 
@@ -356,15 +357,9 @@ public class OrganizationManagerService {
         // 1. check rights of caller to create space
         // check if user has permissions to organization
         Organization organization = orgaService.getOrganization(orgaId, authModel);
-
-        // 2. update space entity
-        // ensure owners are not updated
         Space original = spaceService.getSpaceById(authModel, orgaId, update.getId());
-        update.setOwners(original.getOwners());
-        // update entity
-        Space updated = spaceService.updateSpaceEntity(authModel, organization, update);
 
-        // 3. create organization contexts
+        // 2. create organization contexts
         // for every service client a task is scheduled and run in parallel
         // if any of the tasks fail, the operation is rolled back (best effort)
         ExecutorService executorService = Executors.newFixedThreadPool(serviceRestClients.size());
@@ -376,7 +371,7 @@ public class OrganizationManagerService {
             for (var client : serviceRestClients) {
                 Callable<Void> task = () -> {
                     SecurityContextHolder.setContext(securityContext);
-                    client.updateSpaceContext(organization, updated);
+                    client.updateSpaceContext(organization, update);
                     return null;
                 };
                 tasks.add(task);
@@ -394,8 +389,15 @@ public class OrganizationManagerService {
         } finally {
             executorService.shutdown();
         }
+
+        // 3. update space entity
+        Space updated = spaceService.updateSpaceEntity(authModel, organization, update);
+        // ensure owners are not updated
+        updated.setOwners(original.getOwners());
+
         AuditLogger.info(LOG, "successfullly updated space {} in organization {}, update {}", authModel.getToken(),
-                update.getId(), orgaId, update);
+                update.getId(), orgaId, updated);
+
         return updated;
     }
 
