@@ -105,9 +105,29 @@ public class StoragemanagerServiceRestClient extends AbstractServiceRestClient {
         }
     }
 
+
     @Override
-    protected void updateSpaceContextImpl(Space spc, Organization org) throws OrganizationmanagerException {
-        // not implemented (see https://jira.efs-techhub.com/browse/EFSAI-1365)
+    protected void updateSpaceContextImpl(Organization org, Space original, Space update) throws OrganizationmanagerException {
+        // create storage context when STORAGE capability is added - else do nothing!
+        if (update.getCapabilities().contains(STORAGE) && !original.getCapabilities().contains(STORAGE)) {
+            LOG.debug("updating storage Space context...");
+            OrganizationContextDTO orgDTO = converter.convertToDTO(org, OrganizationContextDTO.class);
+            SpaceContextDTO spcDTO = converter.convertToDTO(update, SpaceContextDTO.class);
+            spcDTO.setOrganization(orgDTO);
+
+            URI uri = URI.create(format("%s/organization/%s/space/", serviceEndpoint, org.getName())).normalize();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(APPLICATION_JSON);
+            headers.setBearerAuth(getAccessToken());
+            HttpEntity<Object> requestEntity = new HttpEntity<>(spcDTO, headers);
+
+            try {
+                restTemplate.exchange(uri, HttpMethod.POST, requestEntity, SpaceContextDTO.class);
+            } catch (RestClientException e) {
+                LOG.debug(e.getMessage());
+                throw new OrganizationmanagerException(STORAGEMANAGER_SERVICE_ERROR);
+            }
+        }
     }
 
     @Override

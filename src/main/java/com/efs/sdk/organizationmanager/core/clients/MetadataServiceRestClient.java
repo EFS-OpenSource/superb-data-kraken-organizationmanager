@@ -123,7 +123,7 @@ public class MetadataServiceRestClient extends AbstractServiceRestClient {
     }
 
     @Override
-    protected void updateSpaceContextImpl(Space spc, Organization org) throws OrganizationmanagerException {
+    protected void updateSpaceContextImpl(Organization org, Space original, Space spc) throws OrganizationmanagerException {
         LOG.debug("trying to update metadata Space context...");
         OrganizationContextDTO orgDTO = converter.convertToDTO(org, OrganizationContextDTO.class);
         SpaceContextDTO spcDTO = converter.convertToDTO(spc, SpaceContextDTO.class);

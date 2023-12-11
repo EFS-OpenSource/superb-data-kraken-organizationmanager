@@ -72,7 +72,7 @@ public class KeycloakServiceRestClient extends AbstractServiceRestClient {
     }
 
     @Override
-    protected void updateSpaceContextImpl(Space spc, Organization org) throws OrganizationmanagerException {
+    protected void updateSpaceContextImpl(Organization org, Space original, Space spc) throws OrganizationmanagerException {
         // creates roles if they do not already exist
         // this can happen when the confidentiality of the organization changes for the first time
         roleService.createRoles(authService.getSAaccessToken(), org, spc);
