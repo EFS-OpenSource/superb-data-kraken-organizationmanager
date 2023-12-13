@@ -11,14 +11,15 @@
   <em>A data platform for everyone</em>
 </p>
 
-- [About](#about)
-- [Getting Started](#getting-started)
+- [OrganizationManager](#organizationmanager)
+  - [About](#about)
+  - [Getting Started](#getting-started)
     - [Prerequisites](#prerequisites)
     - [Setup](#setup)
     - [Configuration](#configuration)
     - [Usage](#usage)
-- [Contributing](#contributing)
-- [Changelog](#changelog)
+  - [Contributing](#contributing)
+  - [Changelog](#changelog)
 
 ## About
 
@@ -28,10 +29,10 @@ It's designed for managing organizations and spaces within the SDK.
 *Organizations* group use-cases, while *Spaces* represent individual use-cases.
 
 For a more detailed understanding of the broader context of the platform this project is used in, refer to
-the [architecture documentation](https://github.com/EFS-OpenSource/superb-data-kraken-architecture).
+the [architecture documentation](https://github.com/EFS-OpenSource/superb-data-kraken-frontend).
 
 For instructions on how to deploy the `OrganizationManager` on an instance of the **SDK**, refer to
-the [installation instructions](https://github.com/EFS-OpenSource/superb-data-kraken-install-instructions).
+the [installation instructions](https://efs-opensource.github.io/superbdatakraken/operator-manual/installation/).
 
 Refer to [index.md](docs%2Findex.md) for more detailed but deployment specific documentation.
 
@@ -64,12 +65,12 @@ To set up your local environment for development and testing, follow these steps
     ```bash
    cp src/main/resources/application-local-template.yml src/main/resources/application-local.yaml
    ```
-   Configure the `application-local.yaml` file based on your local development setup. The OpenSearch instance and the OIDC provider instance need to be
+   Configure the `application-local.yaml` file based on your local development setup. The OIDC provider instance needs to be
    configured correctly for the organizationmanager to run as expected.
-1. Run the service:
+2. Run the service:
    ```bash
    ./mvnw spring-boot:run -Dspring-boot:run.profiles=local
-1. After successful setup, you can test the service using the auto-generated API documentation at:
+3. After successful setup, you can test the service using the auto-generated API documentation at:
    ```
    https://localhost:8094/organizationmanager/swagger-ui/index.html
 
@@ -81,7 +82,6 @@ To set up your local environment for development and testing, follow these steps
 - Replace all placeholders enclosed in `$()`, e.g.:
     - `REALM`: the specific realm set up with the openid connect (oidc) provider.
     - `CLIENT_ID`: the unique identifier for the service account that the service utilizes.
-    - `CLIENT_SECRET`: the confidential passphrase or key associated with the service account.
 
 ### Usage
 

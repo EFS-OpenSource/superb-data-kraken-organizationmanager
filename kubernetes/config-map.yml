@@ -6,7 +6,7 @@ metadata:
 data:
   applicationinsights.json: |-
     {
-      "connectionString": "$(app-insights-con-string)",
+      "connectionString": "$(APP_INSIGHTS_CONNECTION_STRING)",
       "role": {
         "name": "Organizationmanager Backend"
       },
@@ -25,13 +25,13 @@ data:
   application.yml: |-
     azure:
       application-insights:
-        instrumentation-key: $(app-insights-instrumentation-key)
+        instrumentation-key: $(APP_INSIGHTS_INSTRUMENTATION_KEY)
     apidoc:
       title: EFS SDK Organizationmanager-API
     sdk:
       oauth2:
-        config-url: http://keycloak$(postfix)-http.operations.svc.cluster.local/auth/realms/efs-$(environment)/.well-known/openid-configuration
-        client-id: $(environment)-client
+        config-url: http://keycloak$(postfix)-http.operations.svc.cluster.local/auth/realms/$(REALM)/.well-known/openid-configuration
+        client-id: $(CLIENT_ID)
         authorization-grant-type: authorization_code
         scope: openid
         user-name-attribute: preferred_username
@@ -48,7 +48,7 @@ data:
         include-message: always
     spring:
       datasource:
-        url: jdbc:postgresql://$(environment)-coredb$(postfix).postgres.database.azure.com:5432/organizationmanager?ssl=true&sslmode=prefer
+        url: jdbc:postgresql://$(DATABASE_SERVER):5432/$(ORGAMANAGER_DATABASE)?ssl=true&sslmode=prefer
       jpa:
         properties:
           hibernate:
@@ -62,8 +62,8 @@ data:
         show-sql: false
     organizationmanager:
       auth:
-        client-id: $(environment)-client-confidential
-        realm-endpoint: http://keycloak$(postfix)-http.operations.svc.cluster.local/auth/admin/realms/efs-$(environment)
+        client-id: $(CLIENT_ID_CONFIDENTIAL)
+        realm-endpoint: http://keycloak$(postfix)-http.operations.svc.cluster.local/auth/admin/realms/$(REALM)
       kafka:
         topic:
           space-deleted: space-deleted
@@ -80,4 +80,4 @@ data:
     logging:
       config: classpath:com/efs/sdk/logging/sdk.logback.xml
       level:
-        com.efs.sdk: $(logging-level)
+        com.efs.sdk: $(LOG_LEVEL)

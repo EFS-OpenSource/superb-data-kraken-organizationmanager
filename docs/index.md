@@ -113,14 +113,14 @@ Both are of type Service Account and have the following parameters
 ### Pipeline Variables
 
 
-the following pipeline variables are required:
+The following pipeline variables are required:
 
 | name                            | example                       |
 |---------------------------------|-------------------------------|
 | dockerRegistryServiceConnection | sc-efs-sdk-acraicloud         |
 | kubernetesServiceConnection     | sc-efs-sdk-aks-aicloud_devops |
 | environment                     | aicloud                       |
-| main-domain                     | aicloud.efs.ai                |
+| DOMAIN                          | aicloud.efs.ai                |
 
 The container registry service connection is established during pipeline creation.
 
