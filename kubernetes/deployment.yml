@@ -19,64 +19,64 @@ spec:
     spec:
       serviceAccountName: organizationmanager-account
       containers:
-        - name: organizationmanager
-          image: acr$(environment).azurecr.io/organizationmanager:$(tagVersion)
-          imagePullPolicy: Always
-          volumeMounts:
-            - name: secret-mount
-              mountPath: "/etc/secrets"
-              readOnly: true
-            - name: db-secret
-              mountPath: "/etc/db-secret"
-              readOnly: true
-            - name: orgamanager-secret
-              mountPath: "/etc/orgamanager-secret"
-              readOnly: true
-            - name: app-configuration
-              mountPath: "/etc/application"
-              readOnly: true
-          resources:
-            requests:
-              memory: 512Mi
-              cpu: 400m
-            limits:
-              memory: 768Mi
-              cpu: 750m
-          ports:
-            - containerPort: 8090
-              name: http
-          readinessProbe:
-            httpGet:
-              path: /organizationmanager/actuator/health
-              port: 8090
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            timeoutSeconds: 2
-            failureThreshold: 1
-            successThreshold: 1
+      - name: organizationmanager
+        image: $(CONTAINER_REGISTRY)/organizationmanager:$(tagVersion)
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: secret-mount
+          mountPath: "/etc/secrets"
+          readOnly: true
+        - name: db-secret
+          mountPath: "/etc/db-secret"
+          readOnly: true
+        - name: orgamanager-secret
+          mountPath: "/etc/orgamanager-secret"
+          readOnly: true
+        - name: app-configuration
+          mountPath: "/etc/application"
+          readOnly: true
+        resources:
+          requests:
+            memory: 512Mi
+            cpu: 400m
+          limits:
+            memory: 768Mi
+            cpu: 750m
+        ports:
+        - containerPort: 8090
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /organizationmanager/actuator/health
+            port: 8090
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 1
+          successThreshold: 1
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 1
-              preference:
-                matchExpressions:
-                  - key: agentpool
-                    operator: In
-                    values:
-                      - userpool
+          - weight: 1
+            preference:
+              matchExpressions:
+              - key: agentpool
+                operator: In
+                values:
+                - userpool
       volumes:
-        - name: secret-mount
-          secret:
-            secretName: eventhub-secret
-        - name: db-secret
-          secret:
-            secretName: coredb-secret
-        - name: orgamanager-secret
-          secret:
-            secretName: organizationmanager-secret
-        - name: app-configuration
-          configMap:
-            name: organizationmanager
+      - name: secret-mount
+        secret:
+          secretName: eventhub-secret
+      - name: db-secret
+        secret:
+          secretName: coredb-secret
+      - name: orgamanager-secret
+        secret:
+          secretName: organizationmanager-secret
+      - name: app-configuration
+        configMap:
+          name: organizationmanager
       restartPolicy: Always
   selector:
     matchLabels:

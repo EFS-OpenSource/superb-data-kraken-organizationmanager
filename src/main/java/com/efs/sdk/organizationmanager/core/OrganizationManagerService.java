@@ -79,8 +79,8 @@ public class OrganizationManagerService {
     private boolean kafkaEnabled;
 
     public OrganizationManagerService(OrganizationService orgaService, SpaceService spaceService, RoleService roleService, AuthService authService,
-                                      UserService userService, UserRequestService userRequestService, RoleHelper roleHelper, List<AbstractServiceRestClient> serviceRestClients,
-                                      EntityConverter converter, EventPublisher eventPublisher) {
+            UserService userService, UserRequestService userRequestService, RoleHelper roleHelper, List<AbstractServiceRestClient> serviceRestClients,
+            EntityConverter converter, EventPublisher eventPublisher) {
         this.orgaService = orgaService;
         this.spaceService = spaceService;
         this.roleService = roleService;
@@ -179,8 +179,6 @@ public class OrganizationManagerService {
         // ensure owners are not updated
         Organization original = getOrgaAdminOrOwner(authModel, update.getId());
         update.setOwners(original.getOwners());
-        // update entity
-        Organization orgPersisted = orgaService.updateOrganizationEntity(update, authModel);
 
         // 2. create organization contexts
         // for every service client a task is scheduled and run in parallel
@@ -194,7 +192,7 @@ public class OrganizationManagerService {
             for (var client : serviceRestClients) {
                 Callable<Void> task = () -> {
                     SecurityContextHolder.setContext(securityContext);
-                    client.updateOrganizationContext(orgPersisted);
+                    client.updateOrganizationContext(update);
                     return null;
                 };
                 tasks.add(task);
@@ -213,7 +211,8 @@ public class OrganizationManagerService {
             executorService.shutdown();
         }
 
-        return orgPersisted;
+        // update entity AFTER all requests were successful
+        return orgaService.updateOrganizationEntity(update, authModel);
 
     }
 
@@ -353,18 +352,23 @@ public class OrganizationManagerService {
      * @throws OrganizationmanagerException thrown on errors
      */
     public Space updateSpace(AuthenticationModel authModel, long orgaId, Space update) throws OrganizationmanagerException {
-        // 1. check rights of caller to create space
+        // 1. check rights of caller to update space
         // check if user has permissions to organization
         Organization organization = orgaService.getOrganization(orgaId, authModel);
 
-        // 2. update space entity
-        // ensure owners are not updated
         Space original = spaceService.getSpaceById(authModel, orgaId, update.getId());
-        update.setOwners(original.getOwners());
-        // update entity
-        Space updated = spaceService.updateSpaceEntity(authModel, organization, update);
 
-        // 3. create organization contexts
+        if (!canUpdateSpace(original, authModel)) {
+            AuditLogger.error(LOG, "lacks permissions to update space {}!", authModel.getToken(), orgaId);
+            throw new OrganizationmanagerException(FORBIDDEN);
+        }
+
+        // Only allow adding new Capabilities
+        if (!update.getCapabilities().containsAll(original.getCapabilities())) {
+            throw new OrganizationmanagerException(INVALID_DATA, "Capabilities cannot be removed from spaces.");
+        }
+
+        // 2. create organization contexts
         // for every service client a task is scheduled and run in parallel
         // if any of the tasks fail, the operation is rolled back (best effort)
         ExecutorService executorService = Executors.newFixedThreadPool(serviceRestClients.size());
@@ -376,7 +380,7 @@ public class OrganizationManagerService {
             for (var client : serviceRestClients) {
                 Callable<Void> task = () -> {
                     SecurityContextHolder.setContext(securityContext);
-                    client.updateSpaceContext(organization, updated);
+                    client.updateSpaceContext(organization, original, update);
                     return null;
                 };
                 tasks.add(task);
@@ -394,9 +398,21 @@ public class OrganizationManagerService {
         } finally {
             executorService.shutdown();
         }
-        AuditLogger.info(LOG, "successfullly updated space {} in organization {}, update {}", authModel.getToken(),
-                update.getId(), orgaId, update);
+
+        // 3. update space entity
+        Space updated = spaceService.updateSpaceEntity(authModel, organization, update);
+        // exclude owners from update
+        updated.setOwners(original.getOwners());
+
+        AuditLogger.info(LOG, "successfullly updated space {} in organization {}, update {}", authModel.getToken(), update.getId(), orgaId, updated);
+
         return updated;
+    }
+
+    private boolean canUpdateSpace(Space spc, AuthenticationModel authModel) {
+        return authModel.hasPermission(spc, AuthConfiguration.WRITE)
+                || isOwner(spc)
+                || authModel.isSuperuser();
     }
 
     /**
@@ -589,7 +605,7 @@ public class OrganizationManagerService {
      * @throws OrganizationmanagerException thrown on errors
      */
     public UserDTO setRolesByName(AuthenticationModel authenticationModel, long orgaId, long spaceId, String name,
-                                  List<RoleHelper.SpaceScopeRole> roleScopes) throws OrganizationmanagerException {
+            List<RoleHelper.SpaceScopeRole> roleScopes) throws OrganizationmanagerException {
         UserDTO user = userService.getUserByName(name);
         return setRoles(authenticationModel, orgaId, spaceId, user, roleScopes);
     }
@@ -605,7 +621,7 @@ public class OrganizationManagerService {
      * @throws OrganizationmanagerException thrown on errors
      */
     public UserDTO setRolesByEmail(AuthenticationModel authenticationModel, long orgaId, long spaceId, String email,
-                                   List<RoleHelper.SpaceScopeRole> roleScopes) throws OrganizationmanagerException {
+            List<RoleHelper.SpaceScopeRole> roleScopes) throws OrganizationmanagerException {
         UserDTO user = userService.getUserByEmail(email);
         return setRoles(authenticationModel, orgaId, spaceId, user, roleScopes);
     }

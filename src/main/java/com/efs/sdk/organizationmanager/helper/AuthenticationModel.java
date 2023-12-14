@@ -15,6 +15,8 @@ limitations under the License.
  */
 package com.efs.sdk.organizationmanager.helper;
 
+import com.efs.sdk.organizationmanager.core.organization.model.Organization;
+import com.efs.sdk.organizationmanager.core.space.model.Space;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import java.util.*;
@@ -123,7 +125,8 @@ public class AuthenticationModel {
                     .forEach(allowedRole -> organizationsByPermission.addAll(Arrays.stream(spaces).filter(spaceRole -> spaceRole.getRole().equals(allowedRole)).map(AuthEntitySpace::getOrganization).collect(toSet())));
         }
 
-        Set<String> orgaAccessRoles = Arrays.stream(organizations).filter(o -> ACCESS_ROLE.equalsIgnoreCase(o.getRole())).map(AuthEntityOrganization::getOrganization).collect(toSet());
+        Set<String> orgaAccessRoles =
+                Arrays.stream(organizations).filter(o -> ACCESS_ROLE.equalsIgnoreCase(o.getRole())).map(AuthEntityOrganization::getOrganization).collect(toSet());
 
         organizationsByPermission.retainAll(orgaAccessRoles);
         return organizationsByPermission.toArray(String[]::new);
@@ -134,5 +137,40 @@ public class AuthenticationModel {
             return false;
         }
         return Arrays.stream(organizations).anyMatch(o -> orgaName.equals(o.getOrganization()) && ADMIN_ROLE.equalsIgnoreCase(o.getRole()));
+    }
+
+    /**
+     * Determines if the current user has the required permissions for a specific space.
+     * This method evaluates the user's permissions against the set of required roles for the given space.
+     * It checks if the roles associated with the space, as defined in the 'spaces' array, match the user's permissions.
+     *
+     * @param space       The space for which the permission check is to be performed.
+     * @param permissions The current user's permissions configuration.
+     * @return true if the user has at least one of the required roles for the space, false otherwise.
+     */
+    public boolean hasPermission(Space space, AuthConfiguration permissions) {
+        Set<String> requiredRolesSpace = Arrays.stream(this.spaces)
+                .filter(aes -> aes.getSpace().equals(space.getName()))
+                .map(AuthEntitySpace::getRole)
+                .collect(toSet());
+        return requiredRolesSpace.containsAll(List.of(permissions.getAllowedRoles()));
+    }
+
+    /**
+     * Checks if the current user has the required permissions for a specified organization.
+     * This method assesses if the user's permissions align with the set of roles required for the given organization and AuthConfiguration.
+     * It does this by filtering the 'organizations' array for the specified organization, extracting the roles associated with it,
+     * and then comparing these roles with the user's permissions.
+     *
+     * @param org         The organization for which the permission check is to be performed.
+     * @param permissions The current user's permissions configuration.
+     * @return true if the user's permissions include all the roles required for the organization, false otherwise.
+     */
+    public boolean hasPermission(Organization org, AuthConfiguration permissions) {
+        Set<String> spaceRoles = Arrays.stream(this.organizations)
+                .filter(aes -> aes.getOrganization().equals(org.getName()))
+                .map(AuthEntityOrganization::getRole)
+                .collect(toSet());
+        return spaceRoles.containsAll(List.of(permissions.getAllowedRoles()));
     }
 }

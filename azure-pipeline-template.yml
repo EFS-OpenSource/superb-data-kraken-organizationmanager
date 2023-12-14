@@ -1,18 +1,17 @@
 # Template parameters
 parameters:
-  - name: stage
-    type: string
-    values:
-      - 'dev'
-      - 'prod'
-    default: 'dev'
+- name: stage
+  type: string
+  values:
+  - 'dev'
+  - 'prod'
+  default: 'dev'
 
 # Variables used for all stages
 variables:
   imageRepository: 'organizationmanager'
-  containerRegistry: 'acr$(environment).azurecr.io'
+  containerRegistry: '$(CONTAINER_REGISTRY)'
   dockerfilePath: 'Dockerfile'
-  imagePullSecret: 'acr$(environment)-auth'
   ${{ if eq(parameters.stage, 'prod') }}:
     tagVersion: '$(Build.BuildId)'
     tagLatest: 'latest'
@@ -23,153 +22,139 @@ variables:
     postfix: '-dev'
 
 stages:
-  # Test stage:
-  # Runs a Maven task that is equivalent to a "mvn test" command and collects the results in JaCoCo (how to access?).
-  - stage: Test
-    displayName: Test stage
-    jobs:
-      - job: Test
-        displayName: Test
-        steps:
-          - task: CmdLine@2
-            inputs:
-              script: |
-                mkdir -p ~/.m2
-                echo "$(settings.xml)" > "$HOME/.m2/settings.xml"
-          - task: MavenAuthenticate@0
-            inputs:
-              artifactsFeeds: sdk-snapshots, EFS-SDK
-          - task: CmdLine@2
-            inputs:
-              script: |
-                echo "$HOME/.m2/settings.xml"
-          - task: Maven@3
-            inputs:
-              mavenPomFile: 'pom.xml'
-              goals: 'test'
-              publishJUnitResults: true
-              testResultsFiles: '**/surefire-reports/TEST-*.xml'
-              codeCoverageToolOption: 'JaCoCo'
-              javaHomeOption: 'JDKVersion'
-              jdkVersionOption: '1.17'
-              mavenVersionOption: 'Default'
-              mavenAuthenticateFeed: false
-              effectivePomSkip: false
-              sonarQubeRunAnalysis: false
+# Test stage:
+# Runs a Maven task that is equivalent to a "mvn test" command and collects the results in JaCoCo (how to access?).
+- stage: Test
+  displayName: Test stage
+  jobs:
+  - job: Test
+    displayName: Test
+    steps:
+    - task: CmdLine@2
+      inputs:
+        script: |
+          mkdir -p ~/.m2
+          echo "$(settings.xml)" > "$HOME/.m2/settings.xml"
+    - task: MavenAuthenticate@0
+      inputs:
+        artifactsFeeds: sdk-snapshots, EFS-SDK
+    - task: CmdLine@2
+      inputs:
+        script: |
+          echo "$HOME/.m2/settings.xml"
+    - task: Maven@3
+      inputs:
+        mavenPomFile: 'pom.xml'
+        goals: 'test'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+        codeCoverageToolOption: 'JaCoCo'
+        javaHomeOption: 'JDKVersion'
+        jdkVersionOption: '1.17'
+        mavenVersionOption: 'Default'
+        mavenAuthenticateFeed: false
+        effectivePomSkip: false
+        sonarQubeRunAnalysis: false
 
-  # Build stage:
-  # 1. Runs a a Maven task that is equivalent to a "mvn build" command to build the java project into a jar artifact.
-  # 2. Runs a Docker task that builds the artifact into a docker image and pushes it to ACR.
-  # 3. Creates an artifact for the kubernetes folder holding the kubernetes yaml files.
-  - stage: Build
-    displayName: Build stage
-    dependsOn: Test
-    jobs:
-      - job: Build
-        displayName: Build
-        condition: and(succeeded(), not(startsWith(variables['Build.SourceBranch'], 'refs/pull/')))
-        steps:
-          - task: CmdLine@2
-            inputs:
-              script: |
-                mkdir -p ~/.m2
-                echo "$(settings.xml)" > "$HOME/.m2/settings.xml"
-          - task: MavenAuthenticate@0
-            inputs:
-              artifactsFeeds: sdk-snapshots, EFS-SDK
-          - task: Maven@3
-            displayName:
-            inputs:
-              mavenPomFile: 'pom.xml'
-              options: '-DskipTests'
-              publishJUnitResults: false
-              javaHomeOption: 'JDKVersion'
-              jdkVersionOption: '1.17'
-              mavenVersionOption: 'Default'
-              mavenAuthenticateFeed: false
-              effectivePomSkip: false
-              sonarQubeRunAnalysis: false
-          - task: CmdLine@2
-            inputs:
-              script: |
-                echo "dockerRegistryServiceConnection is $(dockerRegistryServiceConnection)"
-                echo "imageRepository is $(imageRepository)"
-                echo "dockerfilePath is $(dockerfilePath)"
-          - task: CmdLine@2
-            displayName: Download Application Insights
-            inputs:
-              script: 'curl -L -o applicationinsights-agent.jar https://github.com/microsoft/ApplicationInsights-Java/releases/download/3.4.14/applicationinsights-agent-3.4.14.jar'
-          - task: Docker@2
-            displayName: Build and push an image to container registry
-            inputs:
-              command: buildAndPush
-              repository: $(imageRepository)
-              dockerfile: $(dockerfilePath)
-              containerRegistry: $(dockerRegistryServiceConnection)
-              tags: |
-                $(tagVersion)
-                $(tagLatest)
-          - upload: kubernetes
-            artifact: kubernetes
+# Build stage:
+# 1. Runs a a Maven task that is equivalent to a "mvn build" command to build the java project into a jar artifact.
+# 2. Runs a Docker task that builds the artifact into a docker image and pushes it to ACR.
+# 3. Creates an artifact for the kubernetes folder holding the kubernetes yaml files.
+- stage: Build
+  displayName: Build stage
+  dependsOn: Test
+  jobs:
+  - job: Build
+    displayName: Build
+    condition: and(succeeded(), not(startsWith(variables['Build.SourceBranch'], 'refs/pull/')))
+    steps:
+    - task: CmdLine@2
+      inputs:
+        script: |
+          mkdir -p ~/.m2
+          echo "$(settings.xml)" > "$HOME/.m2/settings.xml"
+    - task: MavenAuthenticate@0
+      inputs:
+        artifactsFeeds: sdk-snapshots, EFS-SDK
+    - task: Maven@3
+      displayName:
+      inputs:
+        mavenPomFile: 'pom.xml'
+        options: '-DskipTests'
+        publishJUnitResults: false
+        javaHomeOption: 'JDKVersion'
+        jdkVersionOption: '1.17'
+        mavenVersionOption: 'Default'
+        mavenAuthenticateFeed: false
+        effectivePomSkip: false
+        sonarQubeRunAnalysis: false
+    - task: CmdLine@2
+      inputs:
+        script: |
+          echo "dockerRegistryServiceConnection is $(dockerRegistryServiceConnection)"
+          echo "imageRepository is $(imageRepository)"
+          echo "dockerfilePath is $(dockerfilePath)"
+    - task: CmdLine@2
+      displayName: Download Application Insights
+      inputs:
+        script: 'curl -L -o applicationinsights-agent.jar https://github.com/microsoft/ApplicationInsights-Java/releases/download/3.4.14/applicationinsights-agent-3.4.14.jar'
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(tagVersion)
+          $(tagLatest)
+    - upload: kubernetes
+      artifact: kubernetes
 
-  # Deploy stage:
-  # 1. Runs a KubernetesManifest task that creates a kubernetes secret that hold the credentials to connect to ACR
-  # 2. Runs a replacetokens task that replaces tokens in the kubernetes/*.yml files with pipeline environment variables
-  # 3. Runs a KubernetesManifest task that
-  #       1. deploys all the manifests in the kubernetes folder (= runs a "kubectl apply" for every one of them)
-  #       2. retrieves the previously built docker image from ACR and deploys it
-  - stage: Deploy
-    displayName: Deploy stage
-    dependsOn: Build
-    jobs:
-      - deployment: Deploy
-        timeoutInMinutes: 2
-        condition: and(succeeded(), not(startsWith(variables['Build.SourceBranch'], 'refs/pull/')))
-        displayName: Deploy
-        environment: 'dev'
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - task: CmdLine@2
-                  inputs:
-                    script: |
-                      echo "kubernetesServiceConnection is $(kubernetesServiceConnection)"
-                      [[ ! -z "$(imagePullSecret)" ]] && echo "imagePullSecret is Not empty" || echo "imagePullSecret is Empty"
-                - task: KubernetesManifest@0
-                  inputs:
-                    action: 'createSecret'
-                    kubernetesServiceConnection: '$(kubernetesServiceConnection)'
-                    namespace: 'backend'
-                    secretType: 'dockerRegistry'
-                    secretName: '$(imagePullSecret)'
-                    dockerRegistryEndpoint: '$(dockerRegistryServiceConnection)'
-                - task: CmdLine@2
-                  inputs:
-                    script: |
-                      echo "environment is $(environment)"
-                - task: replacetokens@3
-                  inputs:
-                    rootDirectory: '$(Pipeline.Workspace)'
-                    targetFiles: 'kubernetes/*.yml'
-                    encoding: 'auto'
-                    writeBOM: true
-                    actionOnMissing: 'warn'
-                    keepToken: false
-                    tokenPrefix: '$('
-                    tokenSuffix: ')'
-                - task: KubernetesManifest@0
-                  displayName: Deploy to Kubernetes cluster
-                  inputs:
-                    action: 'deploy'
-                    kubernetesServiceConnection: '$(kubernetesServiceConnection)'
-                    namespace: 'backend'
-                    manifests: |
-                      $(Pipeline.Workspace)/kubernetes/config-map.yml
-                      $(Pipeline.Workspace)/kubernetes/deployment.yml
-                      $(Pipeline.Workspace)/kubernetes/ingress.yml
-                      $(Pipeline.Workspace)/kubernetes/rbac.yml
-                      $(Pipeline.Workspace)/kubernetes/service.yml
-                      $(Pipeline.Workspace)/kubernetes/secret.yml
-                    containers: '$(containerRegistry)/$(imageRepository):$(tagVersion)'
-                    imagePullSecrets: '$(imagePullSecret)'
+# Deploy stage:
+# 1. Runs a KubernetesManifest task that creates a kubernetes secret that hold the credentials to connect to ACR
+# 2. Runs a replacetokens task that replaces tokens in the kubernetes/*.yml files with pipeline environment variables
+# 3. Runs a KubernetesManifest task that
+#       1. deploys all the manifests in the kubernetes folder (= runs a "kubectl apply" for every one of them)
+#       2. retrieves the previously built docker image from ACR and deploys it
+- stage: Deploy
+  displayName: Deploy stage
+  dependsOn: Build
+  jobs:
+  - deployment: Deploy
+    timeoutInMinutes: 2
+    condition: and(succeeded(), not(startsWith(variables['Build.SourceBranch'], 'refs/pull/')))
+    displayName: Deploy
+    environment: 'dev'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: CmdLine@2
+            inputs:
+              script: |
+                echo "kubernetesServiceConnection is $(kubernetesServiceConnection)"
+          - task: replacetokens@3
+            inputs:
+              rootDirectory: '$(Pipeline.Workspace)'
+              targetFiles: 'kubernetes/*.yml'
+              encoding: 'auto'
+              writeBOM: true
+              actionOnMissing: 'warn'
+              keepToken: false
+              tokenPrefix: '$('
+              tokenSuffix: ')'
+          - task: KubernetesManifest@0
+            displayName: Deploy to Kubernetes cluster
+            inputs:
+              action: 'deploy'
+              kubernetesServiceConnection: '$(kubernetesServiceConnection)'
+              namespace: 'backend'
+              manifests: |
+                $(Pipeline.Workspace)/kubernetes/config-map.yml
+                $(Pipeline.Workspace)/kubernetes/deployment.yml
+                $(Pipeline.Workspace)/kubernetes/ingress.yml
+                $(Pipeline.Workspace)/kubernetes/rbac.yml
+                $(Pipeline.Workspace)/kubernetes/service.yml
+                $(Pipeline.Workspace)/kubernetes/secret.yml
+              containers: '$(containerRegistry)/$(imageRepository):$(tagVersion)'

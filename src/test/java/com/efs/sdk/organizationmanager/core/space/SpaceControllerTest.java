@@ -42,7 +42,6 @@ import java.util.Locale;
 import static com.efs.sdk.common.domain.model.Confidentiality.PUBLIC;
 import static com.efs.sdk.organizationmanager.commons.OrganizationmanagerException.ORGANIZATIONMANAGER_ERROR.*;
 import static com.efs.sdk.organizationmanager.core.space.SpaceController.ENDPOINT;
-import static com.efs.sdk.organizationmanager.core.space.model.Space.SPACE_LOADINGZONE;
 import static java.lang.String.format;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.*;
@@ -337,16 +336,11 @@ class SpaceControllerTest {
         spc.setId(1L);
         spc.setOrganizationId(1L);
 
-        Space spcLoadingzone = new Space();
-        spcLoadingzone.setName(SPACE_LOADINGZONE);
-        spcLoadingzone.setId(2L);
-        spcLoadingzone.setOrganizationId(1L);
-
         AuthenticationModel authModel = new AuthenticationModel();
         authModel.setOrganizations(new AuthEntityOrganization[]{new AuthEntityOrganization(format("org_%s_access", orga.getName()))});
         authModel.setSpaces(new AuthEntitySpace[]{new AuthEntitySpace(format("%s_%s_%s", orga.getName(), spc.getName(),
                 RoleHelper.SpaceScopeRole.USER.name()).toLowerCase(Locale.getDefault()))});
-        given(service.getSpaces(any(), anyLong(), any())).willReturn(List.of(spc, spcLoadingzone));
+        given(service.getSpaces(any(), anyLong(), any())).willReturn(List.of(spc));
 
         SpaceReadDTO spaceDTO = modelMapper.map(spc, SpaceReadDTO.class);
         given(converter.convertToDTO(any(Space.class), eq(SpaceReadDTO.class))).willReturn(spaceDTO);
@@ -367,15 +361,10 @@ class SpaceControllerTest {
         spc.setId(1L);
         spc.setOrganizationId(1L);
 
-        Space spcLoadingzone = new Space();
-        spcLoadingzone.setName(SPACE_LOADINGZONE);
-        spcLoadingzone.setId(2L);
-        spcLoadingzone.setOrganizationId(1L);
-
         AuthenticationModel authModel = new AuthenticationModel();
         authModel.setOrganizations(new AuthEntityOrganization[]{new AuthEntityOrganization(format("org_%s_access", orga.getName()))});
         authModel.setSpaces(new AuthEntitySpace[]{new AuthEntitySpace(format("%s_%s_%s", orga.getName(), spc.getName(), "supplier"))});
-        given(service.getSpaces(any(), anyLong(), any())).willReturn(List.of(spc, spcLoadingzone));
+        given(service.getSpaces(any(), anyLong(), any())).willReturn(List.of(spc));
 
         SpaceReadDTO spaceDTO = modelMapper.map(spc, SpaceReadDTO.class);
         given(converter.convertToDTO(any(Space.class), eq(SpaceReadDTO.class))).willReturn(spaceDTO);
@@ -396,15 +385,10 @@ class SpaceControllerTest {
         spc.setId(1L);
         spc.setOrganizationId(1L);
 
-        Space spcLoadingzone = new Space();
-        spcLoadingzone.setName(SPACE_LOADINGZONE);
-        spcLoadingzone.setId(2L);
-        spcLoadingzone.setOrganizationId(1L);
-
         AuthenticationModel authModel = new AuthenticationModel();
         authModel.setOrganizations(new AuthEntityOrganization[]{new AuthEntityOrganization(format("org_%s_access", orga.getName()))});
         authModel.setSpaces(new AuthEntitySpace[]{new AuthEntitySpace(format("%s_%s_%s", orga.getName(), spc.getName(), "trustee"))});
-        given(service.getSpaces(any(), anyLong(), any())).willReturn(List.of(spc, spcLoadingzone));
+        given(service.getSpaces(any(), anyLong(), any())).willReturn(List.of(spc));
 
         SpaceReadDTO spaceDTO = modelMapper.map(spc, SpaceReadDTO.class);
         given(converter.convertToDTO(any(Space.class), eq(SpaceReadDTO.class))).willReturn(spaceDTO);

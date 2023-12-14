@@ -15,7 +15,6 @@ limitations under the License.
  */
 package com.efs.sdk.organizationmanager.core.space;
 
-import com.efs.sdk.common.domain.model.Capability;
 import com.efs.sdk.logging.AuditLogger;
 import com.efs.sdk.organizationmanager.commons.OrganizationmanagerException;
 import com.efs.sdk.organizationmanager.core.organization.OrganizationService;
@@ -36,10 +35,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.efs.sdk.common.domain.model.Confidentiality.PUBLIC;
-import static com.efs.sdk.common.domain.model.State.*;
+import static com.efs.sdk.common.domain.model.State.CLOSED;
+import static com.efs.sdk.common.domain.model.State.DELETION;
 import static com.efs.sdk.organizationmanager.commons.OrganizationmanagerException.ORGANIZATIONMANAGER_ERROR.*;
 import static com.efs.sdk.organizationmanager.core.space.model.Space.REGEX_NAME;
-import static com.efs.sdk.organizationmanager.helper.AuthConfiguration.*;
+import static com.efs.sdk.organizationmanager.helper.AuthConfiguration.GET;
+import static com.efs.sdk.organizationmanager.helper.AuthConfiguration.READ;
 import static com.efs.sdk.organizationmanager.helper.Utils.isAdminOrOwner;
 import static com.efs.sdk.organizationmanager.helper.Utils.isOwner;
 
@@ -114,6 +115,37 @@ public class SpaceService implements PropertyChangeListener {
     }
 
     /**
+     * Gets a space
+     *
+     * @param authModel AuthenticationModel
+     * @param orgaId    the organization-id
+     * @param spaceId   the space
+     * @return the space
+     * @throws OrganizationmanagerException space not found or invalid rights
+     */
+    private Space getSpace(long orgaId, long spaceId, AuthenticationModel authModel, AuthConfiguration permission) throws OrganizationmanagerException {
+
+        Optional<Space> spaceOpt = repo.findByOrganizationIdAndId(orgaId, spaceId);
+        if (spaceOpt.isEmpty()) {
+            throw new OrganizationmanagerException(GET_SINGLE_SPACE_NOT_FOUND);
+        }
+        Space space = spaceOpt.get();
+
+        // to check if one has access to the organization
+        Organization orga = orgaService.getOrganization(orgaId, authModel);
+        if (orga == null) {
+            throw new OrganizationmanagerException(GET_SINGLE_NOT_FOUND);
+        }
+
+        // check if user has the required permissions
+
+        if (!(isAdminOrOwner(authModel, orga, space) || canAccessSpace(space, authModel))) {
+            throw new OrganizationmanagerException(NO_ACCESS_TO_SPACE);
+        }
+        return space;
+    }
+
+    /**
      * Checks if user has access to given space
      *
      * @param space     the space
@@ -126,30 +158,8 @@ public class SpaceService implements PropertyChangeListener {
             return false;
         }
 
-        // if user has access to
-        if (space.getName().equals(Space.SPACE_LOADINGZONE) && canAccessLoadingzone(space.getOrganizationId(), authModel)) {
-            return true;
-        }
-
         boolean publicAccess = PUBLIC.equals(space.getConfidentiality()) && authModel.isSpacePublicAccess();
         return publicAccess || spaceAccess(space, authModel.getSpacesByPermission(READ)) || spaceAccess(space, authModel.getSpacesByPermission(GET));
-    }
-
-    /**
-     * Checks if user has access to loadingzone (by implicit write-rights to other
-     * spaces within organization)
-     *
-     * @param organizationId the organization-id
-     * @param authModel      the AuthenticationModel
-     * @return access to loadingzone
-     */
-    private boolean canAccessLoadingzone(Long organizationId, AuthenticationModel authModel) {
-        String[] writeRights = authModel.getSpacesByPermission(WRITE);
-        if (writeRights == null) {
-            return false;
-        }
-        List<Space> writableSpaces = repo.findByOrganizationIdAndNameIn(organizationId, Arrays.asList(writeRights));
-        return !writableSpaces.isEmpty();
     }
 
     /**
@@ -215,18 +225,10 @@ public class SpaceService implements PropertyChangeListener {
      */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        try {
-            if (OrganizationService.PROP_ORG_DELETED.equals(evt.getPropertyName())) {
-                Object oldValue = evt.getOldValue();
-                Organization orga = (Organization) oldValue;
-                deleteSpaces(orga.getId());
-            } else if (OrganizationService.PROP_ORG_CREATED.equals(evt.getPropertyName())) {
-                Object newValue = evt.getNewValue();
-                Organization orga = (Organization) newValue;
-                createLoadingzone(orga);
-            }
-        } catch (OrganizationmanagerException e) {
-            throw new IllegalArgumentException(e.getMessage(), e);
+        if (OrganizationService.PROP_ORG_DELETED.equals(evt.getPropertyName())) {
+            Object oldValue = evt.getOldValue();
+            Organization orga = (Organization) oldValue;
+            deleteSpaces(orga.getId());
         }
     }
 
@@ -337,26 +339,6 @@ public class SpaceService implements PropertyChangeListener {
         if (spaceOpt.isPresent() && spaceOpt.get().getId() != item.getId()) {
             throw new OrganizationmanagerException(SAVE_SPACE_NAME_FOUND);
         }
-    }
-
-    /**
-     * Creates a special space called "loadingzone" for a new organization.
-     *
-     * @param orga the organization
-     * @throws OrganizationmanagerException storage-organization-errors
-     */
-    private Space createLoadingzone(Organization orga) throws OrganizationmanagerException {
-
-        Space space = new Space();
-        space.setCreated(ZonedDateTime.now());
-        space.setName(Space.SPACE_LOADINGZONE);
-        space.setDescription("loadingzone for " + orga.getName());
-        space.setConfidentiality(orga.getConfidentiality());
-        space.setState(OPEN);
-        space.setMetadataGenerate(false);
-        space.setCapabilities(Collections.singletonList(Capability.STORAGE));
-
-        return createSpaceEntity(orga, space);
     }
 
     /**

@@ -3,7 +3,7 @@ apidoc:
 sdk:
   oauth2:
     config-url: https://$(DOMAIN)/auth/realms/$(REALM)/.well-known/openid-configuration
-    client-id: $(CLIENT-ID)
+    client-id: $(CLIENT_ID)
     authorization-grant-type: authorization_code
     scope: openid
     user-name-attribute: preferred_username
@@ -36,10 +36,23 @@ spring:
           lob:
             non_contextual_creation: true
     show-sql: false
+  kafka:
+    admin:
+      fail-fast: true
+    bootstrap-servers: $(KAFKA_BOOTSTRAP_SERVER)
+    properties:
+      sasl:
+        mechanism: PLAIN
+        jaas:
+          config: $(KAFKA_SASL_JAAS_CONFIG)
+      security:
+        protocol: SASL_SSL
+      group:
+        id: $Default
 organizationmanager:
   auth:
-    client-id: $(CLIENT_ID)-confidential
-    client-secret: $(REPLACE-WITH-CLIENT-SECRET)
+    client-id: $(CLIENT_ID_CONFIDENTIAL)
+    client-secret: $(CLIENT_SECRET_CONFIDENTIAL)
     realm-endpoint: https://$(DOMAIN)/auth/admin/$(REALM)
   kafka:
     topic:
