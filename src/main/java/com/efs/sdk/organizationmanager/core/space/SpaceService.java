@@ -15,7 +15,6 @@ limitations under the License.
  */
 package com.efs.sdk.organizationmanager.core.space;
 
-import com.efs.sdk.common.domain.model.Capability;
 import com.efs.sdk.logging.AuditLogger;
 import com.efs.sdk.organizationmanager.commons.OrganizationmanagerException;
 import com.efs.sdk.organizationmanager.core.organization.OrganizationService;
@@ -36,10 +35,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.efs.sdk.common.domain.model.Confidentiality.PUBLIC;
-import static com.efs.sdk.common.domain.model.State.*;
+import static com.efs.sdk.common.domain.model.State.CLOSED;
+import static com.efs.sdk.common.domain.model.State.DELETION;
 import static com.efs.sdk.organizationmanager.commons.OrganizationmanagerException.ORGANIZATIONMANAGER_ERROR.*;
 import static com.efs.sdk.organizationmanager.core.space.model.Space.REGEX_NAME;
-import static com.efs.sdk.organizationmanager.helper.AuthConfiguration.*;
+import static com.efs.sdk.organizationmanager.helper.AuthConfiguration.GET;
+import static com.efs.sdk.organizationmanager.helper.AuthConfiguration.READ;
 import static com.efs.sdk.organizationmanager.helper.Utils.isAdminOrOwner;
 import static com.efs.sdk.organizationmanager.helper.Utils.isOwner;
 
@@ -106,6 +107,37 @@ public class SpaceService implements PropertyChangeListener {
             LOG.debug("got organization-rights");
             throw new OrganizationmanagerException(GET_SINGLE_NOT_FOUND);
         }
+
+        if (!(isAdminOrOwner(authModel, orga, space) || canAccessSpace(space, authModel))) {
+            throw new OrganizationmanagerException(NO_ACCESS_TO_SPACE);
+        }
+        return space;
+    }
+
+    /**
+     * Gets a space
+     *
+     * @param authModel AuthenticationModel
+     * @param orgaId    the organization-id
+     * @param spaceId   the space
+     * @return the space
+     * @throws OrganizationmanagerException space not found or invalid rights
+     */
+    private Space getSpace(long orgaId, long spaceId, AuthenticationModel authModel, AuthConfiguration permission) throws OrganizationmanagerException {
+
+        Optional<Space> spaceOpt = repo.findByOrganizationIdAndId(orgaId, spaceId);
+        if (spaceOpt.isEmpty()) {
+            throw new OrganizationmanagerException(GET_SINGLE_SPACE_NOT_FOUND);
+        }
+        Space space = spaceOpt.get();
+
+        // to check if one has access to the organization
+        Organization orga = orgaService.getOrganization(orgaId, authModel);
+        if (orga == null) {
+            throw new OrganizationmanagerException(GET_SINGLE_NOT_FOUND);
+        }
+
+        // check if user has the required permissions
 
         if (!(isAdminOrOwner(authModel, orga, space) || canAccessSpace(space, authModel))) {
             throw new OrganizationmanagerException(NO_ACCESS_TO_SPACE);

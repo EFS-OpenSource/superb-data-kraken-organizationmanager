@@ -57,6 +57,7 @@ public class OrganizationmanagerException extends Exception {
         GET_SINGLE_SPACE_NOT_FOUND(10021, HttpStatus.NOT_FOUND, "space does not exist."),
         INVALID_NAME(10022, HttpStatus.BAD_REQUEST,
                 "Invalid name provided, be aware that the name must apply to the following regular expression"),
+        INVALID_DATA(10023, HttpStatus.BAD_REQUEST, "Invalid object data."),
         NO_ACCESS_TO_ORGANIZATION(10025, HttpStatus.FORBIDDEN, "You do not have access to get organization"),
         NO_ACCESS_TO_SPACE(10026, HttpStatus.FORBIDDEN, "You do not have access to get space"),
         RENAMING_OBJECT_FORBIDDEN(10027, HttpStatus.FORBIDDEN, "renaming the object is forbidden"),

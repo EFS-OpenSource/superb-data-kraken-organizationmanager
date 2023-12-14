@@ -86,13 +86,13 @@ public abstract class AbstractServiceRestClient {
 
     public abstract void createSpaceContextImpl(Organization org, Space spc) throws OrganizationmanagerException;
 
-    public void updateSpaceContext(Organization org, Space spc) throws OrganizationmanagerException {
-        if (hasSpaceContext(spc)) {
-            updateSpaceContextImpl(spc, org);
+    public void updateSpaceContext(Organization org, Space original, Space update) throws OrganizationmanagerException {
+        if (hasSpaceContext(original) || hasSpaceContext(update)) {
+            updateSpaceContextImpl(org, original, update);
         }
     }
 
-    protected abstract void updateSpaceContextImpl(Space spc, Organization org) throws OrganizationmanagerException;
+    protected abstract void updateSpaceContextImpl(Organization org, Space original, Space update) throws OrganizationmanagerException;
 
     public void deleteSpaceContext(Organization org, Space spc) throws OrganizationmanagerException {
         if (hasSpaceContext(spc)) {
